@@ -8,5 +8,5 @@ class User(Base):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     username = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)  # Изменено на password
+    password = Column(String, nullable=False)
     token = Column(String, nullable=True)

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from models.user import User  # Импортируем модель User
+from models.user import User
 from schemas.user_schema import (
     UserCreate,
     UserLogin,
@@ -9,7 +9,7 @@ from schemas.user_schema import (
     UserResponse,
     UserChangePasswordResponse 
 )
-from database.database import SessionLocal, engine  # Импортируем SessionLocal и engine
+from database.database import SessionLocal, engine 
 import secrets
 
 auth_router = APIRouter()
