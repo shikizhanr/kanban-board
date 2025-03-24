@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from models.user import User
 from schemas.user_schema import (
@@ -47,18 +48,28 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     return {"username": user.username, "message": "User registered successfully"}
 
 @auth_router.post("/login", response_model=UserResponse)
-def login(user: UserLogin, db: Session = Depends(get_db)):
+def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username, User.password == user.password).first()
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Если токен отсутствует, генерируем новый
     if not db_user.token:
-        db_user.token = secrets.token_hex(16)  # Генерация 32-символьного токена
+        db_user.token = secrets.token_hex(16)
         db.commit()
         db.refresh(db_user)
     
-    # Возвращаем токен в ответе
+    # Устанавливаем токен в куки на 15 минут
+    response.set_cookie(
+        key="access_token",
+        value=db_user.token,
+        httponly=True,
+        max_age=900,  # 15 минут в секундах
+        expires=900,
+        secure=True,  # Для HTTPS
+        samesite="lax"
+    )
+    
     return {"username": user.username, "token": db_user.token, "message": "Login successful"}
 
 @auth_router.post("/change-password", response_model=UserChangePasswordResponse)
@@ -79,18 +90,28 @@ def change_password(user: UserChangePassword, db: Session = Depends(get_db)):
     return {"username": user.username, "message": "Password changed successfully"}
 
 @auth_router.post("/update-token", response_model=UserResponse)
-def update_token(user: UserUpdateToken, db: Session = Depends(get_db)):
+def update_token(user: UserUpdateToken, response: Response, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
     # Генерация нового случайного токена
-    new_token = secrets.token_hex(16)  # Генерация 32-символьного токена
+    new_token = secrets.token_hex(16)
     
     # Обновляем токен
     db_user.token = new_token
     db.commit()
     db.refresh(db_user)
     
-    # Возвращаем новый токен в ответе
+    # Устанавливаем новый токен в куки на 15 минут
+    response.set_cookie(
+        key="access_token",
+        value=new_token,
+        httponly=True,
+        max_age=900,
+        expires=900,
+        secure=True,
+        samesite="lax"
+    )
+    
     return {"username": user.username, "token": new_token, "message": "Token updated successfully"}
