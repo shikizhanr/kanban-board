@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import User, Task, TaskStatus  # Абсолютный импорт
+from app.models.models import User, Task, TaskStatus  # Абсолютный импорт
 from app.database import Base  # Абсолютный импорт
 
 
@@ -26,6 +26,8 @@ def seed_data():
         # Добавление пользователей
         user1 = User(first_name="Иван", last_name="Петров")
         user2 = User(first_name="Мария", last_name="Сидорова")
+        user3 = User(first_name="Евгения", last_name="Иванова")
+        user4 = User(first_name="Александр", last_name="Пульдас")
         session.add_all([user1, user2])
         session.commit()
 
@@ -46,10 +48,19 @@ def seed_data():
             author_id=user2.id
         )
 
+        task3 = Task(
+            title="Исправление бага",
+            description="Исправить ошибку, из-за которой пользователь не может авторизироваться",
+            task_type="Исправление",
+            status=TaskStatus.PLANNED,
+            author_id=user2.id
+        )
+
         task1.assigned_users.extend([user1, user2])
         task2.assigned_users.append(user2)
+        task3.assigned_users.extend([user3, user4])
 
-        session.add_all([task1, task2])
+        session.add_all([task1, task2, task3])
         session.commit()
 
         print("✅ Тестовые данные успешно добавлены!")
