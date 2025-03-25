@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends, Response
-from datetime import datetime, timedelta
+from fastapi import APIRouter, HTTPException, Depends, Request, Response, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 from models.user import User
 from schemas.user_schema import (
     UserCreate,
@@ -8,15 +9,43 @@ from schemas.user_schema import (
     UserChangePassword,
     UserUpdateToken,
     UserResponse,
-    UserChangePasswordResponse 
+    UserChangePasswordResponse
 )
-from database.database import SessionLocal, engine 
+from database.database import SessionLocal, engine
 import secrets
 
 auth_router = APIRouter()
 
-# Создание таблиц в базе данных (если они еще не созданы)
+# Создание таблиц в базе данных
 User.metadata.create_all(bind=engine)
+
+# Класс для проверки JWT токена
+class JWTBearer(HTTPBearer):
+    def __init__(self, auto_error: bool = True):
+        super(JWTBearer, self).__init__(auto_error=auto_error)
+
+    async def __call__(self, request: Request):
+        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+        if credentials:
+            if not self.verify_token(credentials.credentials):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Invalid or expired token"
+                )
+            return credentials.credentials
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid authorization code"
+            )
+
+    def verify_token(self, token: str) -> bool:
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.token == token).first()
+            return user is not None
+        finally:
+            db.close()
 
 # Функция для получения сессии базы данных
 def get_db():
@@ -32,13 +61,12 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
     
-    # Создаем пользователя без токена
     new_user = User(
         username=user.username,
         password=user.password,
         first_name=user.first_name,
         last_name=user.last_name,
-        token=None  # Токен не генерируется при регистрации
+        token=None
     )
     
     db.add(new_user)
@@ -53,20 +81,18 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Если токен отсутствует, генерируем новый
     if not db_user.token:
         db_user.token = secrets.token_hex(16)
         db.commit()
         db.refresh(db_user)
     
-    # Устанавливаем токен в куки на 15 минут
     response.set_cookie(
         key="access_token",
         value=db_user.token,
         httponly=True,
-        max_age=900,  # 15 минут в секундах
+        max_age=900,
         expires=900,
-        secure=True,  # Для HTTPS
+        secure=True,
         samesite="lax"
     )
     
@@ -78,11 +104,9 @@ def change_password(user: UserChangePassword, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Проверяем старый пароль
     if db_user.password != user.old_password:
         raise HTTPException(status_code=401, detail="Invalid old password")
     
-    # Обновляем пароль
     db_user.password = user.new_password
     db.commit()
     db.refresh(db_user)
@@ -95,15 +119,11 @@ def update_token(user: UserUpdateToken, response: Response, db: Session = Depend
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Генерация нового случайного токена
     new_token = secrets.token_hex(16)
-    
-    # Обновляем токен
     db_user.token = new_token
     db.commit()
     db.refresh(db_user)
     
-    # Устанавливаем новый токен в куки на 15 минут
     response.set_cookie(
         key="access_token",
         value=new_token,
@@ -115,3 +135,17 @@ def update_token(user: UserUpdateToken, response: Response, db: Session = Depend
     )
     
     return {"username": user.username, "token": new_token, "message": "Token updated successfully"}
+
+@auth_router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(key="access_token")
+    return {"message": "Logged out successfully"}
+
+@auth_router.get("/protected", dependencies=[Depends(JWTBearer())])
+async def protected_route():
+    return {"message": "This is a protected route"}
+
+@auth_router.get("/check-auth", dependencies=[Depends(JWTBearer())])
+async def check_auth(request: Request):
+    token = request.cookies.get("access_token")
+    return {"message": "Authenticated", "token": token}
