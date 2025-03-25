@@ -1,6 +1,6 @@
-from app.database import engine, SessionLocal
-from app.models import Task, TaskStatus
-from app.schemas import TaskBase
+from backend.app.database import engine, SessionLocal
+from backend.app.models import Task, TaskStatus
+from backend.app.schemas import TaskBase
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import date

@@ -6,8 +6,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models.models import User, Task, TaskStatus  # Абсолютный импорт
-from app.database import Base  # Абсолютный импорт
+from backend.app import User, Task, TaskStatus  # Абсолютный импорт
+from backend.app import Base  # Абсолютный импорт
 
 
 def seed_data():
