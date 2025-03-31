@@ -1,0 +1,77 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>ec227ee1-01b1-4de0-af09-693fc1104485</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>backend\app\main.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>Project</Name>
+    <RootNamespace>Project</RootNamespace>
+    <InterpreterId>MSBuild|venv|$(MSBuildProjectFullPath)</InterpreterId>
+    <SuppressPackageInstallationPrompt>True</SuppressPackageInstallationPrompt>
+    <TestFramework>Pytest</TestFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="backend\app\config.py" />
+    <Compile Include="backend\app\database.py" />
+    <Compile Include="backend\app\main.py" />
+    <Compile Include="backend\app\models\user.py" />
+    <Compile Include="backend\app\models\__init__.py" />
+    <Compile Include="backend\app\routers\auth.py" />
+    <Compile Include="backend\app\routers\__init__.py" />
+    <Compile Include="backend\app\utils\__init__.py" />
+    <Compile Include="backend\app\schemas\__init__.py" />
+    <Compile Include="backend\app\services\auth.py" />
+    <Compile Include="backend\app\tests\conftest.py" />
+    <Compile Include="backend\app\tests\__init__.py" />
+    <Compile Include="backend\app\utils\security.py" />
+    <Compile Include="backend\app\__init__.py" />
+    <Compile Include="backend\app\schemas\user.py" />
+    <Compile Include="backend\app\tests\test_auth.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="venv\">
+      <Id>venv</Id>
+      <Version>0.0</Version>
+      <Description>venv (Python 3.12 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="backend\app\" />
+    <Folder Include="backend\app\models\" />
+    <Folder Include="backend\" />
+    <Folder Include="backend\app\utils\" />
+    <Folder Include="backend\app\routers\" />
+    <Folder Include="backend\app\services\" />
+    <Folder Include="backend\app\tests\" />
+    <Folder Include="backend\app\schemas\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".env" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
