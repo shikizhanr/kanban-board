@@ -1,5 +1,5 @@
 from passlib.context import CryptContext
-from backend.app.config import settings
+from app.config import settings
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],

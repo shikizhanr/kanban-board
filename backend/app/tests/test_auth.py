@@ -2,7 +2,7 @@ import pytest
 from fastapi import status
 from datetime import datetime, timedelta, timezone
 import jwt
-from backend.app.config import settings
+from app.config import settings
 
 def test_register_user(client):
     """Тест регистрации нового пользователя"""

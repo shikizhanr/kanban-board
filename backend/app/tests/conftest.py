@@ -9,9 +9,9 @@ from sqlalchemy.orm import sessionmaker
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.append(str(project_root))
 
-from backend.app.database import Base, get_db
-from backend.app.main import app
-from backend.app.models.user import User
+from app.database import Base, get_db
+from app.main import app
+from app.models.user import User
 
 # Настройка тестовой БД SQLite
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"

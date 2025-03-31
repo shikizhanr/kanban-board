@@ -3,8 +3,9 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ec227ee1-01b1-4de0-af09-693fc1104485</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>backend\app\main.py</StartupFile>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>app\main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -24,22 +25,22 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="backend\app\config.py" />
-    <Compile Include="backend\app\database.py" />
-    <Compile Include="backend\app\main.py" />
-    <Compile Include="backend\app\models\user.py" />
-    <Compile Include="backend\app\models\__init__.py" />
-    <Compile Include="backend\app\routers\auth.py" />
-    <Compile Include="backend\app\routers\__init__.py" />
-    <Compile Include="backend\app\utils\__init__.py" />
-    <Compile Include="backend\app\schemas\__init__.py" />
-    <Compile Include="backend\app\services\auth.py" />
-    <Compile Include="backend\app\tests\conftest.py" />
-    <Compile Include="backend\app\tests\__init__.py" />
-    <Compile Include="backend\app\utils\security.py" />
-    <Compile Include="backend\app\__init__.py" />
-    <Compile Include="backend\app\schemas\user.py" />
-    <Compile Include="backend\app\tests\test_auth.py" />
+    <Compile Include="app\config.py" />
+    <Compile Include="app\database.py" />
+    <Compile Include="app\main.py" />
+    <Compile Include="app\models\user.py" />
+    <Compile Include="app\models\__init__.py" />
+    <Compile Include="app\routers\auth.py" />
+    <Compile Include="app\routers\__init__.py" />
+    <Compile Include="app\utils\__init__.py" />
+    <Compile Include="app\schemas\__init__.py" />
+    <Compile Include="app\services\auth.py" />
+    <Compile Include="app\tests\conftest.py" />
+    <Compile Include="app\tests\__init__.py" />
+    <Compile Include="app\utils\security.py" />
+    <Compile Include="app\__init__.py" />
+    <Compile Include="app\schemas\user.py" />
+    <Compile Include="app\tests\test_auth.py" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="venv\">
@@ -53,14 +54,13 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="backend\app\" />
-    <Folder Include="backend\app\models\" />
-    <Folder Include="backend\" />
-    <Folder Include="backend\app\utils\" />
-    <Folder Include="backend\app\routers\" />
-    <Folder Include="backend\app\services\" />
-    <Folder Include="backend\app\tests\" />
-    <Folder Include="backend\app\schemas\" />
+    <Folder Include="app\" />
+    <Folder Include="app\models\" />
+    <Folder Include="app\utils\" />
+    <Folder Include="app\routers\" />
+    <Folder Include="app\services\" />
+    <Folder Include="app\tests\" />
+    <Folder Include="app\schemas\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".env" />
