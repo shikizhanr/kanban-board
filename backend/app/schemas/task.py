@@ -3,6 +3,13 @@ from datetime import datetime
 from typing import List, Optional
 from enum import Enum
 
+
+class TaskStatus(str, Enum):
+    PLANNED = "planned"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+
+
 class UserBase(BaseModel):
     first_name: str
     last_name: str

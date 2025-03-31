@@ -6,10 +6,9 @@ import enum
 
 
 class TaskStatus(str, enum.Enum):
-    PLANNED = "Запланировано"
-    IN_PROGRESS = "В работе"
-    COMPLETED = "Готово"
-
+    PLANNED = "planned"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
 
 class User(Base):
     __tablename__ = "users"

@@ -4,8 +4,8 @@ from datetime import date
 from typing import List
 
 from backend.app.database import get_db
-from backend.app.models.models import Task, User, TaskStatus
-from backend.app.schemas.schemas import (
+from backend.app.models.task import Task, User, TaskStatus
+from backend.app.schemas.task import (
     TaskBase,
     TaskCreate,
     TaskUpdate,
@@ -44,12 +44,14 @@ def create_task(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/{task_id}", response_model=TaskResponse)
 def get_task(task_id: int, db: Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
+
 
 @router.put("/{task_id}", response_model=TaskResponse)
 def update_task(
@@ -75,6 +77,7 @@ def update_task(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.delete("/{task_id}")
 def delete_task(task_id: int, db: Session = Depends(get_db)):
