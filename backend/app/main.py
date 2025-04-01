@@ -1,16 +1,19 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from backend.app.routers.tasks import router as tasks_router
 ##from backend.app.routers.users import router as users_router
-from backend.app.routers.auth import router as auth_router
-from backend.app.database import engine, Base
+from routers.auth import router as auth_router
+from routers.user import router as users_router
+from database import engine, Base
 
 app = FastAPI()
 
-# Подключение роутеров
-app.include_router(tasks_router)
-##app.include_router(users_router)
-app.include_router(auth_router)
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(users_router, prefix="/users", tags=["users"])
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to FastAPI authentication and authorization example"}
 
 
 @app.on_event("startup")
