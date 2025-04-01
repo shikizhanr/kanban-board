@@ -31,16 +31,17 @@
     <Compile Include="app\models\user.py" />
     <Compile Include="app\models\__init__.py" />
     <Compile Include="app\routers\auth.py" />
+    <Compile Include="app\routers\user.py" />
     <Compile Include="app\routers\__init__.py" />
     <Compile Include="app\utils\__init__.py" />
     <Compile Include="app\schemas\__init__.py" />
     <Compile Include="app\services\auth.py" />
-    <Compile Include="app\tests\conftest.py" />
-    <Compile Include="app\tests\__init__.py" />
+    <Compile Include="tests\conftest.py" />
+    <Compile Include="tests\__init__.py" />
     <Compile Include="app\utils\security.py" />
     <Compile Include="app\__init__.py" />
     <Compile Include="app\schemas\user.py" />
-    <Compile Include="app\tests\test_auth.py" />
+    <Compile Include="tests\test_auth.py" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="venv\">
@@ -59,7 +60,7 @@
     <Folder Include="app\utils\" />
     <Folder Include="app\routers\" />
     <Folder Include="app\services\" />
-    <Folder Include="app\tests\" />
+    <Folder Include="tests\" />
     <Folder Include="app\schemas\" />
   </ItemGroup>
   <ItemGroup>
