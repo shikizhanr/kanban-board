@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 ##from backend.app.routers.users import router as users_router
-from routers.auth import router as auth_router
-from routers.user import router as users_router
+from .routers.auth import router as auth_router
+from .routers.user import router as users_router
 from database import engine, Base
 
 app = FastAPI()
