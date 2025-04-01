@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, Table
 from sqlalchemy.orm import relationship
-from backend.app.database import Base
+from app.database import Base
 from datetime import datetime
 import enum
 
@@ -10,20 +10,20 @@ class TaskStatus(str, enum.Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
 
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    first_name = Column(String(50))
-    last_name = Column(String(50))
-
-    created_tasks = relationship("Task", back_populates="author")
-    assigned_tasks = relationship(
-        "Task",
-        secondary="task_user_association",
-        back_populates="assigned_users",
-        overlaps="assigned_tasks"
-    )
+# class User(Base):
+#     __tablename__ = "users"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     first_name = Column(String(50))
+#     last_name = Column(String(50))
+#
+#     created_tasks = relationship("Task", back_populates="author")
+#     assigned_tasks = relationship(
+#         "Task",
+#         secondary="task_user_association",
+#         back_populates="assigned_users",
+#         overlaps="assigned_tasks"
+#     )
 
 
 class Task(Base):

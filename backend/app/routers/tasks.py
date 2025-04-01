@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from datetime import date
 from typing import List
 
-from backend.app.database import get_db
-from backend.app.models.task import Task, User, TaskStatus
-from backend.app.schemas.task import (
+from app.database import get_db
+from app.models.task import Task, TaskStatus
+from app.models.user import User
+from app.schemas.task import (
     TaskBase,
     TaskCreate,
     TaskUpdate,
@@ -18,7 +19,7 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 @router.post("/", response_model=TaskResponse)
 def create_task(
-        task: TaskBase,
+        task: TaskCreate,
         db: Session = Depends(get_db),
         author_id: int = 1  # Временная заглушка
 ):
