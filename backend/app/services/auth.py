@@ -8,7 +8,9 @@ from ..config import settings
 from ..database import get_db
 from ..models.user import User
 from ..schemas.user import TokenData  # Теперь импорт будет работать
-
+SECRET_KEY = settings.jwt_secret_key
+ALGORITHM = settings.jwt_algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
@@ -17,14 +19,23 @@ async def refresh_access_token(username: str, db: Session) -> str:
     return create_access_token(data={"sub": user.username})
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+# def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+#     to_encode = data.copy()
+#     if expires_delta:
+#         expire = datetime.utcnow() + expires_delta
+#     else:
+#         expire = datetime.utcnow() + timedelta(minutes=30)
+#     to_encode.update({"exp": expire})
+#     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=30)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 
 async def verify_user_active(username: str, db: Session) -> User:
