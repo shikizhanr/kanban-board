@@ -1,8 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UserBase(BaseModel):
-    username: str
+    first_name: str = Field(..., max_length=50)
+    last_name: str = Field(..., max_length=50)
+    username: str = Field(..., max_length=50, pattern="^[a-zA-Z0-9_]+$")
 
 
 class UserCreate(UserBase):

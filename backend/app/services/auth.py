@@ -5,19 +5,20 @@ from sqlalchemy.orm import Session
 from ..utils.security import verify_password, SECRET_KEY, ALGORITHM, get_password_hash, create_access_token
 from ..models.auth import TokenData
 from ..models.user import User
-from ..database import SessionLocal, engine, Base
+from ..database import engine, Base, get_db
 
 Base.metadata.create_all(bind=engine)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
-
+"""
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+"""
 
 
 def get_user(db: Session, username: str):
