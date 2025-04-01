@@ -1,56 +1,60 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import date
 from typing import List
 
-from app.database import get_db
-from app.models.task import Task, TaskStatus
-from app.models.user import User
-from app.schemas.task import (
-    TaskBase,
+from ..database import get_db
+from ..models.task import Task, TaskStatus
+from ..models.user import User
+from ..services.auth import get_current_user
+from ..schemas.task import (
     TaskCreate,
     TaskUpdate,
     TaskResponse
 )
 
-
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
+# Все эндпоинты требуют аутентификации
 @router.post("/", response_model=TaskResponse)
 def create_task(
         task: TaskCreate,
         db: Session = Depends(get_db),
-        author_id: int = 1  # Временная заглушка
+        current_user: User = Depends(get_current_user)
 ):
-    try:
-        db_task = Task(
-            title=task.title,
-            description=task.description,
-            task_type=task.task_type,
-            status=task.status,
-            ##status=TaskStatus(task.status),
-            author_id=author_id
-        )
+    db_task = Task(
+        **task.dict(exclude={'assigned_user_ids'}),
+        author_id=current_user.user_id  # Используем ID текущего пользователя
+    )
 
-        if task.assigned_user_ids:
-            users = db.query(User).filter(User.id.in_(task.assigned_user_ids)).all()
-            db_task.assigned_users = users
+    if task.assigned_user_ids:
+        users = db.query(User).filter(User.user_id.in_(task.assigned_user_ids)).all()
+        db_task.assigned_users = users
 
-        db.add(db_task)
-        db.commit()
-        db.refresh(db_task)
-        return db_task
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
-def get_task(task_id: int, db: Session = Depends(get_db)):
+def get_task(
+        task_id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+
+    # Проверка прав доступа
+    if task.author_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to access this task"
+        )
+
     return task
 
 
@@ -58,43 +62,52 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 def update_task(
         task_id: int,
         task_update: TaskUpdate,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
 ):
-    try:
-        db_task = db.query(Task).filter(Task.id == task_id).first()
-        if not db_task:
-            raise HTTPException(status_code=404, detail="Task not found")
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Task not found")
 
-        for field, value in task_update.dict(exclude_unset=True).items():
-            if field == "assigned_user_ids":
-                users = db.query(User).filter(User.id.in_(value)).all()
-                db_task.assigned_users = users
-            else:
-                setattr(db_task, field, value)
+    # Проверка прав на изменение
+    if db_task.author_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own tasks"
+        )
 
-        db.commit()
-        db.refresh(db_task)
-        return db_task
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+    # Обновление полей
+    for field, value in task_update.dict(exclude_unset=True).items():
+        setattr(db_task, field, value)
+
+    db.commit()
+    db.refresh(db_task)
+    return db_task
 
 
 @router.delete("/{task_id}")
-def delete_task(task_id: int, db: Session = Depends(get_db)):
-    try:
-        task = db.query(Task).filter(Task.id == task_id).first()
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
+def delete_task(
+        task_id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
 
-        db.delete(task)
-        db.commit()
-        return {"message": "Task deleted successfully"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+    # Проверка прав на удаление
+    if task.author_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own tasks"
+        )
+
+    db.delete(task)
+    db.commit()
+    return {"message": "Task deleted successfully"}
 
 
+"""
 def edit_task_description(session: Session, task_description: str, task_id: int):
     try:
         task = session.get(Task, task_id)
@@ -197,3 +210,4 @@ def get_tasks_by_status(
 ):
     return db.query(Task).filter(Task.status == status) \
         .offset(offset).limit(limit).all()
+"""

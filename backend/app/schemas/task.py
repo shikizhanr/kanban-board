@@ -10,11 +10,6 @@ class TaskStatus(str, Enum):
     COMPLETED = "completed"
 
 
-class UserBase(BaseModel):
-    first_name: str
-    last_name: str
-
-
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -31,25 +26,11 @@ class TaskUpdate(TaskBase):
     pass
 
 
-class UserCreate(BaseModel):
-    first_name: str
-    last_name: str
-
-
-class UserResponse(BaseModel):
-    id: int
-    first_name: str
-    last_name: str
-
-    class Config:
-        orm_mode = True
-
-
 class TaskResponse(TaskBase):
     id: int
     date: datetime
     author_id: int
-    assigned_users: List[UserResponse]
+    assigned_users: List[dict]  # Добавляем информацию о назначенных пользователях
 
     class Config:
-        orm_mode = True
+        from_attributes = True

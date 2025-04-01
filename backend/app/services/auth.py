@@ -4,16 +4,18 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 
-from app.config import settings
-from app.database import get_db
-from app.models.user import User
-from app.schemas.user import TokenData  # Теперь импорт будет работать
+from ..config import settings
+from ..database import get_db
+from ..models.user import User
+from ..schemas.user import TokenData  # Теперь импорт будет работать
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
 
 async def refresh_access_token(username: str, db: Session) -> str:
     user = await get_user_by_username(username, db)
     return create_access_token(data={"sub": user.username})
+
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
@@ -24,6 +26,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
+
 async def verify_user_active(username: str, db: Session) -> User:
     user = db.query(User).filter(User.username == username).first()
     if not user:
@@ -32,6 +35,7 @@ async def verify_user_active(username: str, db: Session) -> User:
             detail="User not found"
         )
     return user
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -47,11 +51,28 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
+
     user = db.query(User).filter(User.username == token_data.username).first()
     if user is None:
         raise credentials_exception
     return user
+
+
+def verify_token(token: str, secret_key: str, algorithm: str) -> str:
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        username = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+
+        if datetime.utcnow() > datetime.fromtimestamp(payload["exp"]):
+            raise HTTPException(status_code=401, detail="Token expired")
+
+        return username
+
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 
 async def get_user_by_username(username: str, db: Session) -> User:
     user = db.query(User).filter(User.username == username).first()
