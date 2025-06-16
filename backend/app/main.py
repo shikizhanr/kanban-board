@@ -1,19 +1,18 @@
 from fastapi import FastAPI
+# ИСПРАВЛЕНО: Добавляем импорт для CORS Middleware
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
 from app.api.routers import router as api_router
 from app.db.session import engine, Base
-from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Управляет жизненным циклом приложения.
-    Код до yield выполняется при старте.
-    Код после yield - при остановке.
     """
     print("Application startup...")
     async with engine.begin() as conn:
-        # В реальном проекте миграции лучше делать через Alembic,
-        # а эту строку закомментировать. Для простоты оставляем.
         await conn.run_sync(Base.metadata.create_all)
     print("Database tables checked/created.")
     yield
@@ -21,6 +20,25 @@ async def lifespan(app: FastAPI):
 
 # Создаем приложение с новым обработчиком lifespan
 app = FastAPI(title="Kanban Board API", lifespan=lifespan)
+
+# --- ИСПРАВЛЕНИЕ: Настройка CORS ---
+# Список доменов, с которых разрешены запросы.
+# Для разработки мы разрешаем адрес, на котором работает Vite.
+origins = [
+    "http://localhost",
+    "http://localhost:5173", # Адрес вашего фронтенда
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Разрешаем все методы (GET, POST, PUT, DELETE и т.д.)
+    allow_headers=["*"], # Разрешаем все заголовки
+)
+# --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
 
 app.include_router(api_router, prefix="/api")
 
