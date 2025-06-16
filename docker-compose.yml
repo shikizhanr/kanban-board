@@ -1,31 +1,70 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15
-    container_name: my_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
-    ports:
-      - "5432:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-
   backend:
     build: .
-    container_name: my_backend
-    restart: always
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: postgresql+asyncpg://myuser:mypassword@db/mydatabase
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://myuser:mypassword@db:5432/mydatabase
+      # Example: Override JWT secret (ensure your config.py loads this from env if needed)
+      # - JWT_SECRET_KEY=your_strong_jwt_secret_here
+      # - JWT_ALGORITHM=HS256
+      # - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+      # - POSTGRES_HOST=db # Not strictly needed if DATABASE_URL is full
+      # - POSTGRES_PORT=5432
+      # - POSTGRES_USER=myuser
+      # - POSTGRES_PASSWORD=mypassword
+      # - POSTGRES_DB=mydatabase
     volumes:
-      - .:/app
+      # For development, mount local code to see changes without rebuilding image:
+      # - ./backend:/app/backend
+      # - ./alembic.ini:/app/alembic.ini
+      # - ./migrations:/app/migrations
+      # - ./requirements.txt:/app/requirements.txt
+      # Note: If using local mounts for code, ensure Dockerfile's COPY operations don't conflict
+      # or rebuild image when requirements.txt changes. The current Dockerfile is more for built images.
+      # For a dev setup with volumes, the Dockerfile might only install requirements and set up workdir.
+      pass # Placeholder, adjust volumes as needed for dev vs prod patterns.
+    depends_on:
+      db:
+        condition: service_healthy # Wait for DB to be ready
+    # Command to run migrations and then start the app
+    # This assumes alembic is installed in the container (it is, via requirements.txt)
+    # and alembic.ini is configured to find the database via DATABASE_URL
+    # The PYTHONPATH is set in the Dockerfile.
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn backend.app.main:app --host 0.0.0.0 --port 8000"
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Optionally expose PostgreSQL port to the host for direct access
+      # - "5433:5432"
+      pass # Placeholder, no host port mapping for DB by default
+    healthcheck: # Added healthcheck for db service
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  pg_data:
+  postgres_data:
+
+# Optional: Define a custom network
+# networks:
+#   kanban_net:
+# services:
+#   backend:
+#     networks:
+#       - kanban_net
+#   db:
+#     networks:
+#       - kanban_net
