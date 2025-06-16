@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+asyncpg
+pydantic[email]
+python-jose[cryptography]
+passlib[bcrypt]
+alembic
+psycopg2-binary
+python-multipart
+
+# Зависимости для тестов и .env
+pytest
+httpx
+python-dotenv
+aiosqlite
+pytest-asyncio
