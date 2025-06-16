@@ -1,10 +1,9 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, Table
 from sqlalchemy.orm import relationship
 from ..database import Base
-from datetime import datetime # Make sure datetime is imported from datetime
+from datetime import datetime
 import enum
 
-# It's good practice to import func from sqlalchemy for database functions like now()
 from sqlalchemy.sql import func
 
 
@@ -49,5 +48,5 @@ task_user_association = Table(
     'task_user_association',
     Base.metadata,
     Column('task_id', Integer, ForeignKey('tasks.id'), primary_key=True), # Added primary_key=True for association table best practice
-    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True)  # Added primary_key=True
+    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True)
 )

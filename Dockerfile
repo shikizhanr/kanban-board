@@ -1,17 +1,18 @@
-FROM python:3.12
+FROM python:3.11-slim
 
-# Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
 
-# Копируем файлы проекта в контейнер
-COPY backend/ ./backend/
-COPY requirements.txt ./
+COPY requirements.txt .
 
-# Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Открываем порт для FastAPI
+COPY ./backend /app/backend
+COPY alembic.ini .
+COPY migrations /app/migrations
+
 EXPOSE 8000
 
-# Команда для запуска приложения
+ENV PYTHONPATH "${PYTHONPATH}:/app"
+
+
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
