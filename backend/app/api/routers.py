@@ -41,6 +41,14 @@ async def create_user_endpoint(user: UserCreate, db: AsyncSession = Depends(get_
         raise HTTPException(status_code=400, detail="Email already registered")
     return await users_service.create_user(db=db, user=user)
 
+@router.get("/users/", response_model=List[UserOut])
+async def read_users_endpoint(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user) # Защищаем эндпоинт
+):
+    """Возвращает список всех пользователей."""
+    return await users_service.get_users(db)
+
 # --- Роутер задач (с аутентификацией) ---
 @router.post("/tasks/", response_model=TaskOut, status_code=status.HTTP_201_CREATED)
 async def create_task_endpoint(

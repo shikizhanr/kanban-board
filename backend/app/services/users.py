@@ -4,10 +4,12 @@ from app.models.user import User
 from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
 
+
 async def get_user_by_email(db: AsyncSession, email: str):
     """Получает пользователя по его email."""
     result = await db.execute(select(User).filter(User.email == email))
     return result.scalars().first()
+
 
 async def create_user(db: AsyncSession, user: UserCreate):
     """Создает нового пользователя."""
@@ -22,7 +24,14 @@ async def create_user(db: AsyncSession, user: UserCreate):
     await db.commit()
     await db.refresh(db_user)
     return db_user
+
+
 async def get_user(db: AsyncSession, user_id: int):
     """Получает пользователя по его ID."""
     result = await db.execute(select(User).filter(User.id == user_id))
     return result.scalars().first()
+
+async def get_users(db: AsyncSession):
+    """Получает список всех пользователей."""
+    result = await db.execute(select(User))
+    return result.scalars().all()

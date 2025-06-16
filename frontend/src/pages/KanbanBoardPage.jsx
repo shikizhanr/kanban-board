@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import api from '../api';
 import useAuth from '../hooks/useAuth';
 import KanbanColumn from '../components/KanbanColumn';
 import Spinner from '../components/Spinner';
+import AddTaskModal from '../components/AddTaskModal';
 
 const KanbanBoardPage = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const { logout } = useAuth();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const columns = {
         todo: { id: 'todo', title: 'Запланировано' },
@@ -17,20 +19,26 @@ const KanbanBoardPage = () => {
         done: { id: 'done', title: 'Готово' },
     };
 
-    useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const response = await api.get('/tasks/');
-                setTasks(response.data);
-            } catch (err) {
-                setError('Не удалось загрузить задачи.');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTasks();
+    const fetchTasks = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await api.get('/tasks/');
+            setTasks(response.data);
+        } catch (err) {
+            setError('Не удалось загрузить задачи.');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchTasks();
+    }, [fetchTasks]);
+
+    const handleTaskAdded = (newTask) => {
+        setTasks(prevTasks => [...prevTasks, newTask]);
+    };
 
     const onDragEnd = async (result) => {
         const { source, destination, draggableId } = result;
@@ -69,7 +77,15 @@ const KanbanBoardPage = () => {
         <div className="flex flex-col h-screen bg-gray-50 font-sans">
             <header className="bg-white shadow-md p-4 flex justify-between items-center flex-shrink-0">
                 <h1 className="text-2xl font-bold text-indigo-600">Kanban.PRO</h1>
-                <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm font-semibold">Выйти</button>
+                <div className="flex items-center space-x-4">
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-semibold"
+                    >
+                        + Создать задачу
+                    </button>
+                    <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm font-semibold">Выйти</button>
+                </div>
             </header>
             <main className="flex-grow p-4 overflow-x-auto">
                 <DragDropContext onDragEnd={onDragEnd}>
@@ -87,6 +103,11 @@ const KanbanBoardPage = () => {
                     </div>
                 </DragDropContext>
             </main>
+            <AddTaskModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onTaskAdded={handleTaskAdded}
+            />
         </div>
     );
 };
