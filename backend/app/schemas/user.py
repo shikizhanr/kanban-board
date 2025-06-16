@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field
+om pydantic import BaseModel, Field
 
 
 class UserBase(BaseModel):
-    first_name: str = Field(..., max_length=50)
-    last_name: str = Field(..., max_length=50)
+    first_name: str = Field(..., min_length=2, max_length=50) # Updated
+    last_name: str = Field(..., min_length=2, max_length=50) # Updated
     username: str = Field(..., max_length=50, pattern="^[a-zA-Z0-9_]+$")
 
 
