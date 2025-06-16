@@ -102,3 +102,9 @@ async def delete_task_endpoint(
     if deleted_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+@router.get("/users/me", response_model=UserOut)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    """
+    Возвращает данные о текущем аутентифицированном пользователе.
+    """
+    return current_user
