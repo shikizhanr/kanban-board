@@ -1,11 +1,12 @@
 import React from 'react';
 
-const TaskCard = ({ task, provided }) => (
+const TaskCard = ({ task, provided, onClick }) => (
     <div
         ref={provided.innerRef}
         {...provided.draggableProps}
         {...provided.dragHandleProps}
-        className="bg-white p-4 mb-4 rounded-lg shadow-md border-l-4 border-indigo-500 hover:shadow-lg transition-shadow duration-200 cursor-grab"
+        onClick={onClick} // <-- Добавляем обработчик клика
+        className="bg-white p-4 mb-4 rounded-lg shadow-md border-l-4 border-indigo-500 hover:shadow-lg transition-shadow duration-200 cursor-pointer" // <-- Меняем cursor-grab на cursor-pointer
     >
         <h4 className="font-semibold text-gray-800">{task.title}</h4>
         <p className="text-sm text-gray-600 mt-1">{task.description}</p>

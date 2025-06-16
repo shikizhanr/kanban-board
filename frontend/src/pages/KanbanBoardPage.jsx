@@ -5,13 +5,17 @@ import useAuth from '../hooks/useAuth';
 import KanbanColumn from '../components/KanbanColumn';
 import Spinner from '../components/Spinner';
 import AddTaskModal from '../components/AddTaskModal';
+import EditTaskModal from '../components/EditTaskModal'; // <-- 1. Импортируем новое окно
 
 const KanbanBoardPage = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const { logout } = useAuth();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    
+    // 2. Добавляем состояние для окна редактирования
+    const [editingTask, setEditingTask] = useState(null); 
 
     const columns = {
         todo: { id: 'todo', title: 'Запланировано' },
@@ -40,6 +44,13 @@ const KanbanBoardPage = () => {
         setTasks(prevTasks => [...prevTasks, newTask]);
     };
 
+    // 3. Функция для обновления задачи в списке после редактирования
+    const handleTaskUpdated = (updatedTask) => {
+        setTasks(prevTasks => prevTasks.map(task => 
+            task.id === updatedTask.id ? updatedTask : task
+        ));
+    };
+
     const onDragEnd = async (result) => {
         const { source, destination, draggableId } = result;
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
@@ -48,9 +59,7 @@ const KanbanBoardPage = () => {
 
         const taskId = parseInt(draggableId);
         const newStatus = destination.droppableId;
-        const taskToMove = tasks.find(t => t.id === taskId);
-
-        // Оптимистичное обновление UI
+        
         const currentTasks = tasks;
         const updatedTasks = tasks.map(task =>
             task.id === taskId ? { ...task, status: newStatus } : task
@@ -62,16 +71,12 @@ const KanbanBoardPage = () => {
         } catch (err) {
             setError('Не удалось обновить статус задачи.');
             console.error(err);
-            setTasks(currentTasks); // Откатываем UI в случае ошибки
+            setTasks(currentTasks);
         }
     };
 
-    if (loading) {
-        return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
-    }
-    if (error) {
-        return <div className="text-center text-red-500 mt-10">{error}</div>;
-    }
+    if (loading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+    if (error) return <div className="text-center text-red-500 mt-10">{error}</div>;
 
     return (
         <div className="flex flex-col h-screen bg-gray-50 font-sans">
@@ -79,7 +84,7 @@ const KanbanBoardPage = () => {
                 <h1 className="text-2xl font-bold text-indigo-600">Kanban.PRO</h1>
                 <div className="flex items-center space-x-4">
                     <button 
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => setIsAddModalOpen(true)}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-semibold"
                     >
                         + Создать задачу
@@ -95,7 +100,12 @@ const KanbanBoardPage = () => {
                             return (
                                 <Droppable key={column.id} droppableId={column.id}>
                                     {(provided) => (
-                                        <KanbanColumn column={column} tasks={columnTasks} provided={provided} />
+                                        <KanbanColumn 
+                                            column={column} 
+                                            tasks={columnTasks} 
+                                            provided={provided}
+                                            onTaskClick={(task) => setEditingTask(task)} // <-- 4. Передаем обработчик
+                                        />
                                     )}
                                 </Droppable>
                             );
@@ -104,9 +114,16 @@ const KanbanBoardPage = () => {
                 </DragDropContext>
             </main>
             <AddTaskModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
                 onTaskAdded={handleTaskAdded}
+            />
+            {/* 5. Рендерим модальное окно редактирования */}
+            <EditTaskModal 
+                isOpen={!!editingTask}
+                onClose={() => setEditingTask(null)}
+                onTaskUpdated={handleTaskUpdated}
+                task={editingTask}
             />
         </div>
     );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import TaskCard from './TaskCard';
 
-const KanbanColumn = ({ column, tasks, provided }) => (
+const KanbanColumn = ({ column, tasks, provided, onTaskClick }) => (
     <div
         {...provided.droppableProps}
         ref={provided.innerRef}
@@ -13,7 +13,11 @@ const KanbanColumn = ({ column, tasks, provided }) => (
             {tasks.map((task, index) => (
                 <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
                     {(provided) => (
-                        <TaskCard task={task} provided={provided} />
+                        <TaskCard
+                            task={task}
+                            provided={provided}
+                            onClick={() => onTaskClick(task)} // <-- Передаем обработчик клика
+                        />
                     )}
                 </Draggable>
             ))}
