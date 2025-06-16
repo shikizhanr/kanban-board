@@ -1,3 +1,5 @@
+# frontend/Dockerfile
+
 # --- ЭТАП 1: Сборка ---
 # Используем официальный образ Node.js для сборки нашего приложения
 FROM node:18-alpine AS build
@@ -6,9 +8,12 @@ FROM node:18-alpine AS build
 WORKDIR /app
 
 # Копируем package.json и package-lock.json для установки зависимостей
+# Используем '*', чтобы скопировать оба файла, если они существуют
 COPY package*.json ./
 
-# Устанавливаем зависимости
+# Гарантируем чистую установку, удаляя старые зависимости
+# Это решает проблемы с конфликтом версий esbuild и другими кэшированными ошибками
+RUN rm -rf node_modules package-lock.json
 RUN npm install
 
 # Копируем остальные файлы нашего приложения
@@ -25,7 +30,7 @@ FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Копируем наш файл конфигурации для Nginx
-# (мы создадим его в следующем шаге)
+# Убедитесь, что у вас есть файл nginx.conf рядом с этим Dockerfile
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Открываем порт 80, который использует Nginx
