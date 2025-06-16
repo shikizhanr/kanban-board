@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-# ИСПРАВЛЕНО: Добавляем импорт для CORS Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -18,10 +17,8 @@ async def lifespan(app: FastAPI):
     yield
     print("Application shutdown.")
 
-# Создаем приложение с новым обработчиком lifespan
 app = FastAPI(title="Kanban Board API", lifespan=lifespan)
 
-# --- ИСПРАВЛЕНИЕ: Настройка CORS ---
 # Список доменов, с которых разрешены запросы.
 # Для разработки мы разрешаем адрес, на котором работает Vite.
 origins = [
@@ -37,7 +34,6 @@ app.add_middleware(
     allow_methods=["*"], # Разрешаем все методы (GET, POST, PUT, DELETE и т.д.)
     allow_headers=["*"], # Разрешаем все заголовки
 )
-# --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
 
 app.include_router(api_router, prefix="/api")

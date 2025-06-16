@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskUpdate
 
+
 async def get_task(db: AsyncSession, task_id: int):
     """
     Получает одну задачу по ID. Эта функция уже умеет правильно подгружать
@@ -14,12 +15,14 @@ async def get_task(db: AsyncSession, task_id: int):
     )
     return result.scalars().first()
 
+
 async def get_tasks(db: AsyncSession, skip: int = 0, limit: int = 100):
     """Получает список всех задач с пагинацией."""
     result = await db.execute(
         select(Task).options(selectinload(Task.creator), selectinload(Task.assignee)).offset(skip).limit(limit)
     )
     return result.scalars().all()
+
 
 async def create_task(db: AsyncSession, task: TaskCreate, creator_id: int):
     """
@@ -37,6 +40,7 @@ async def create_task(db: AsyncSession, task: TaskCreate, creator_id: int):
     # Вызов get_task по-прежнему полезен, т.к. он гарантирует загрузку связей.
     return await get_task(db, db_task.id)
 
+
 async def update_task(db: AsyncSession, task_id: int, task_data: TaskUpdate):
     """Обновляет данные задачи."""
     db_task = await get_task(db, task_id)
@@ -51,6 +55,7 @@ async def update_task(db: AsyncSession, task_id: int, task_data: TaskUpdate):
     await db.refresh(db_task)
     
     return await get_task(db, db_task.id)
+
 
 async def delete_task(db: AsyncSession, task_id: int):
     db_task = await get_task(db, task_id)
@@ -68,6 +73,7 @@ async def assign_task_to_user(db: AsyncSession, task_id: int, user_id: int):
     await db.commit()
     await db.refresh(db_task)
     return await get_task(db, db_task.id)
+
 
 async def log_time_for_task(db: AsyncSession, task_id: int, time_to_add: float):
     db_task = await get_task(db, task_id)

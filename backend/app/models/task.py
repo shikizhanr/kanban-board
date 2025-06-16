@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Float
 from sqlalchemy.orm import relationship
 from app.db.session import Base
-# Убедимся, что User импортирован, если он нужен для связей
 from app.models.user import User
 import enum
 
@@ -17,7 +16,6 @@ class TaskType(str, enum.Enum):
     testing = "testing"
 
 class Task(Base):
-    # ИСПРАВЛЕНО: Возвращаем tablename, чтобы SQLAlchemy знала имя таблицы
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)

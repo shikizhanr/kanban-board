@@ -24,7 +24,6 @@ class TaskOut(TaskBase):
     id: int
     status: TaskStatus
     time_spent: float
-    # ИЗМЕНЕНО: Возвращаем полные объекты создателя и исполнителя
     creator: UserOut
     assignee: Optional[UserOut] = None
 

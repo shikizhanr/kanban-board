@@ -18,14 +18,16 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# НОВОЕ: Схема OAuth2, которая указывает FastAPI, где находится эндпоинт для получения токена
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -34,7 +36,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# НОВАЯ ФУНКЦИЯ-ЗАВИСИМОСТЬ
+
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
     """
     Декодирует JWT токен и возвращает текущего пользователя из базы данных.
