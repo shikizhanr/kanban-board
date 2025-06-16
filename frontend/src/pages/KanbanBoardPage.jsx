@@ -6,6 +6,7 @@ import KanbanColumn from '../components/KanbanColumn';
 import Spinner from '../components/Spinner';
 import AddTaskModal from '../components/AddTaskModal';
 import EditTaskModal from '../components/EditTaskModal'; 
+import { Link } from 'react-router-dom';
 
 const KanbanBoardPage = () => {
     const [tasks, setTasks] = useState([]);
@@ -77,22 +78,32 @@ const KanbanBoardPage = () => {
     if (error) return <div className="text-center text-red-500 mt-10">{error}</div>;
 
     return (
-        <div className="flex flex-col h-screen bg-gray-50 font-sans">
-            <header className="bg-white shadow-md p-4 flex justify-between items-center flex-shrink-0">
-                <h1 className="text-2xl font-bold text-indigo-600">Kanban.PRO</h1>
-                <div className="flex items-center space-x-4">
+        // ИЗМЕНЕНО: Новый, темный и адаптивный дизайн
+        <div className="flex flex-col h-screen bg-neutral-900 text-white font-sans">
+            <header className="bg-neutral-800 border-b border-neutral-700 p-4 flex justify-between items-center flex-shrink-0">
+                <h1 className="text-2xl font-bold text-indigo-400">Kanban.PRO</h1>
+                <div className="flex items-center space-x-6">
                     <button 
                         onClick={() => setIsAddModalOpen(true)}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm font-semibold"
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 transition-colors text-sm font-semibold"
                     >
                         + Создать задачу
                     </button>
-                    <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm font-semibold">Выйти</button>
+                    <div className="flex items-center space-x-4">
+                         <Link to="/profile" className="w-9 h-9 bg-neutral-700 rounded-full flex items-center justify-center text-sm font-bold hover:bg-neutral-600 transition-colors" title="Профиль">
+                             {/* Здесь будет аватар, пока просто иконка */}
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                         </Link>
+                         <button onClick={logout} className="text-neutral-400 hover:text-white transition-colors" title="Выйти">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                         </button>
+                    </div>
                 </div>
             </header>
-            <main className="flex-grow p-4 overflow-x-auto">
+            <main className="flex-grow p-4 md:p-6 lg:p-8 overflow-x-auto">
                 <DragDropContext onDragEnd={onDragEnd}>
-                    <div className="flex space-x-4">
+                    {/* ИЗМЕНЕНО: Колонки теперь занимают всю ширину */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
                         {Object.values(columns).map(column => {
                             const columnTasks = tasks.filter(task => task.status === column.id);
                             return (
@@ -102,7 +113,7 @@ const KanbanBoardPage = () => {
                                             column={column} 
                                             tasks={columnTasks} 
                                             provided={provided}
-                                            onTaskClick={(task) => setEditingTask(task)} 
+                                            onTaskClick={(task) => setEditingTask(task)}
                                         />
                                     )}
                                 </Droppable>

@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from typing import Optional
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -10,4 +11,6 @@ class UserCreate(UserBase):
 
 class UserOut(UserBase):
     id: int
+    avatar_url: Optional[str] = None
+    
     model_config = ConfigDict(from_attributes=True)

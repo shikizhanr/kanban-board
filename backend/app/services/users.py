@@ -31,7 +31,15 @@ async def get_user(db: AsyncSession, user_id: int):
     result = await db.execute(select(User).filter(User.id == user_id))
     return result.scalars().first()
 
+
 async def get_users(db: AsyncSession):
     """Получает список всех пользователей."""
     result = await db.execute(select(User))
     return result.scalars().all()
+
+async def update_avatar(db: AsyncSession, user: User, avatar_path: str) -> User:
+    """Обновляет путь к аватару для пользователя."""
+    user.avatar_url = avatar_path
+    await db.commit()
+    await db.refresh(user)
+    return user

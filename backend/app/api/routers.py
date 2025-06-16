@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, UploadFile, File
 from datetime import timedelta
 from typing import List
 from fastapi.security import OAuth2PasswordRequestForm
@@ -12,9 +12,39 @@ from app.services import tasks as tasks_service
 from app.services import users as users_service
 from app.core.security import create_access_token, verify_password, get_current_user
 from app.models.user import User
+import shutil
+import os
 
 # Главный роутер, который будет подключен в main.py
 router = APIRouter()
+
+UPLOADS_DIR = "uploads"
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+
+@router.post("/users/me/avatar", response_model=UserOut)
+async def upload_avatar_endpoint(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Создаем безопасный путь к файлу
+    file_path = os.path.join(UPLOADS_DIR, f"{current_user.id}_{file.filename}")
+    
+    # Сохраняем файл на диск
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Обновляем путь в базе данных
+    # В ответе вернется относительный путь, например, 'uploads/1_my_avatar.png'
+    # Фронтенд должен будет добавить к нему базовый URL бэкенда.
+    return await users_service.update_avatar(db, user=current_user, avatar_path=file_path)
+
+# НОВЫЙ ЭНДПОИНТ, чтобы Nginx мог раздавать статичные файлы
+# (это не самый лучший способ, но простой для нашего проекта)
+from fastapi.staticfiles import StaticFiles
+router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+
 
 # --- Роутер аутентификации ---
 @router.post("/auth/token", response_model=Token)
