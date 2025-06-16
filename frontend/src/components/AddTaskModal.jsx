@@ -13,7 +13,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // Загружаем пользователей только один раз, когда модальное окно открывается
         if (isOpen && users.length === 0) {
             const fetchUsers = async () => {
                 try {
@@ -40,7 +39,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
                 assignee_id: assigneeId ? parseInt(assigneeId, 10) : null,
             };
             const response = await api.post('/tasks/', taskData);
-            onTaskAdded(response.data); // Передаем новую задачу на главную страницу
+            onTaskAdded(response.data); 
             handleClose();
         } catch (err) {
             console.error("Failed to create task", err);
@@ -51,7 +50,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     };
 
     const handleClose = () => {
-        // Сбрасываем форму при закрытии
         setTitle('');
         setDescription('');
         setType('development');

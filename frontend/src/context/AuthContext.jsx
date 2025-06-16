@@ -5,10 +5,8 @@ import Spinner from '../components/Spinner';
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
-    // Теперь мы храним не просто токен, а весь объект пользователя
+export const AuthProvider = ({ children }) => {   
     const [user, setUser] = useState(null);
-    // Этот стейт нужен, чтобы показывать спиннер при первой загрузке приложения
     const [loading, setLoading] = useState(true);
 
     const navigate = useNavigate();
@@ -26,19 +24,14 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('accessToken');
         if (token) {
             try {
-                // Устанавливаем заголовок для запроса
                 api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                // Делаем запрос на новый эндпоинт /users/me
                 const response = await api.get('/users/me');
-                // Сохраняем данные пользователя в стейт
                 setUser(response.data);
             } catch (error) {
                 console.error("Не удалось получить данные пользователя, токен недействителен.", error);
-                // Если токен невалидный, выходим из системы
                 logout();
             }
         }
-        // Завершаем первоначальную загрузку
         setLoading(false);
     }, [logout]);
 
@@ -55,7 +48,6 @@ export const AuthProvider = ({ children }) => {
         const { access_token } = response.data;
         localStorage.setItem('accessToken', access_token);
         
-        // После получения токена сразу же запрашиваем данные пользователя
         await fetchUser(); 
         navigate('/', { replace: true });
     };
@@ -65,10 +57,8 @@ export const AuthProvider = ({ children }) => {
         navigate('/login');
     };
 
-    // Теперь isLoggedIn зависит от наличия объекта user, а не просто токена
     const value = { user, login, register, logout, isLoggedIn: !!user };
 
-    // Показываем спиннер, пока идет первоначальная проверка токена
     if (loading) {
         return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
     }

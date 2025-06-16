@@ -4,18 +4,14 @@ import api from '../api';
 import Spinner from './Spinner';
 
 const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
-    // Состояния формы
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('development');
     const [assigneeId, setAssigneeId] = useState('');
-    
-    // Состояния для загрузки и ошибок
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Эффект для заполнения формы данными, когда пользователь открывает окно
     useEffect(() => {
         if (task) {
             setTitle(task.title || '');
@@ -24,7 +20,6 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
             setAssigneeId(task.assignee?.id || '');
         }
 
-        // Загружаем пользователей только один раз
         if (isOpen && users.length === 0) {
             const fetchUsers = async () => {
                 try {
@@ -50,10 +45,9 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
                 type,
                 assignee_id: assigneeId ? parseInt(assigneeId, 10) : null,
             };
-            // Отправляем PUT запрос на бэкенд
             const response = await api.put(`/tasks/${task.id}`, updatedData);
-            onTaskUpdated(response.data); // Обновляем задачу на главной странице
-            onClose(); // Закрываем окно
+            onTaskUpdated(response.data); 
+            onClose(); 
         } catch (err) {
             console.error("Failed to update task", err);
             setError("Не удалось обновить задачу. Проверьте введенные данные.");

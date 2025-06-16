@@ -5,7 +5,7 @@ import useAuth from '../hooks/useAuth';
 import KanbanColumn from '../components/KanbanColumn';
 import Spinner from '../components/Spinner';
 import AddTaskModal from '../components/AddTaskModal';
-import EditTaskModal from '../components/EditTaskModal'; // <-- 1. Импортируем новое окно
+import EditTaskModal from '../components/EditTaskModal'; 
 
 const KanbanBoardPage = () => {
     const [tasks, setTasks] = useState([]);
@@ -14,7 +14,6 @@ const KanbanBoardPage = () => {
     const { logout } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     
-    // 2. Добавляем состояние для окна редактирования
     const [editingTask, setEditingTask] = useState(null); 
 
     const columns = {
@@ -44,7 +43,6 @@ const KanbanBoardPage = () => {
         setTasks(prevTasks => [...prevTasks, newTask]);
     };
 
-    // 3. Функция для обновления задачи в списке после редактирования
     const handleTaskUpdated = (updatedTask) => {
         setTasks(prevTasks => prevTasks.map(task => 
             task.id === updatedTask.id ? updatedTask : task
@@ -104,7 +102,7 @@ const KanbanBoardPage = () => {
                                             column={column} 
                                             tasks={columnTasks} 
                                             provided={provided}
-                                            onTaskClick={(task) => setEditingTask(task)} // <-- 4. Передаем обработчик
+                                            onTaskClick={(task) => setEditingTask(task)} 
                                         />
                                     )}
                                 </Droppable>
@@ -118,7 +116,7 @@ const KanbanBoardPage = () => {
                 onClose={() => setIsAddModalOpen(false)}
                 onTaskAdded={handleTaskAdded}
             />
-            {/* 5. Рендерим модальное окно редактирования */}
+            {}
             <EditTaskModal 
                 isOpen={!!editingTask}
                 onClose={() => setEditingTask(null)}
