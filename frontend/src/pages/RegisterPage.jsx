@@ -19,8 +19,19 @@ const RegisterPage = () => {
         try {
             await register({ email, password, first_name: firstName, last_name: lastName });
         } catch (err) {
-            setError('Не удалось зарегистрироваться. Возможно, email уже занят.');
-            console.error(err);
+            console.error("Registration failed", err);
+            if (err.response && err.response.status === 422) {
+                // Если это ошибка валидации от FastAPI, форматируем сообщение
+                const errorDetail = err.response.data.detail[0];
+                const field = errorDetail.loc[1]; // e.g., 'password'
+                const message = errorDetail.msg; // e.g., 'String should have at least 8 characters'
+                setError(`Ошибка в поле '${field}': ${message}`);
+            } else if (err.response && err.response.status === 400) {
+                 setError("Пользователь с таким email уже существует.");
+            } else {
+                setError('Произошла неизвестная ошибка при регистрации.');
+            }
+            // --- КОНЕЦ УЛУЧШЕНИЙ ---
         } finally {
             setLoading(false);
         }
@@ -47,7 +58,7 @@ const RegisterPage = () => {
                         <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                     </div>
                     <div className="mb-6">
-                        <label className="block text-gray-700 mb-2" htmlFor="password">Пароль</label>
+                        <label className="block text-gray-700 mb-2" htmlFor="password">Пароль (мин. 8 символов)</label>
                         <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                     </div>
                     <button type="submit" disabled={loading} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-300 disabled:bg-indigo-300 flex justify-center items-center h-10">

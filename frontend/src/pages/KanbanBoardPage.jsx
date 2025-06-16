@@ -1,21 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import { DragDropContext } from '@hello-pangea/dnd';
+import { Link } from 'react-router-dom';
 import api from '../api';
 import useAuth from '../hooks/useAuth';
 import KanbanColumn from '../components/KanbanColumn';
 import Spinner from '../components/Spinner';
 import AddTaskModal from '../components/AddTaskModal';
-import EditTaskModal from '../components/EditTaskModal'; 
-import { Link } from 'react-router-dom';
+import EditTaskModal from '../components/EditTaskModal';
 
 const KanbanBoardPage = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    
-    const [editingTask, setEditingTask] = useState(null); 
+    const [editingTask, setEditingTask] = useState(null);
 
     const columns = {
         todo: { id: 'todo', title: 'Запланировано' },
@@ -45,7 +44,7 @@ const KanbanBoardPage = () => {
     };
 
     const handleTaskUpdated = (updatedTask) => {
-        setTasks(prevTasks => prevTasks.map(task => 
+        setTasks(prevTasks => prevTasks.map(task =>
             task.id === updatedTask.id ? updatedTask : task
         ));
     };
@@ -58,8 +57,8 @@ const KanbanBoardPage = () => {
 
         const taskId = parseInt(draggableId);
         const newStatus = destination.droppableId;
-        
         const currentTasks = tasks;
+
         const updatedTasks = tasks.map(task =>
             task.id === taskId ? { ...task, status: newStatus } : task
         );
@@ -74,49 +73,46 @@ const KanbanBoardPage = () => {
         }
     };
 
-    if (loading) return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
-    if (error) return <div className="text-center text-red-500 mt-10">{error}</div>;
+    if (loading) return <div className="flex justify-center items-center h-screen bg-neutral-900"><Spinner /></div>;
+    if (error) return <div className="text-center text-red-400 mt-10">{error}</div>;
 
     return (
-        // ИЗМЕНЕНО: Новый, темный и адаптивный дизайн
         <div className="flex flex-col h-screen bg-neutral-900 text-white font-sans">
             <header className="bg-neutral-800 border-b border-neutral-700 p-4 flex justify-between items-center flex-shrink-0">
                 <h1 className="text-2xl font-bold text-indigo-400">Kanban.PRO</h1>
                 <div className="flex items-center space-x-6">
-                    <button 
+                    <button
                         onClick={() => setIsAddModalOpen(true)}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 transition-colors text-sm font-semibold"
                     >
                         + Создать задачу
                     </button>
                     <div className="flex items-center space-x-4">
-                         <Link to="/profile" className="w-9 h-9 bg-neutral-700 rounded-full flex items-center justify-center text-sm font-bold hover:bg-neutral-600 transition-colors" title="Профиль">
-                             {/* Здесь будет аватар, пока просто иконка */}
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                         </Link>
-                         <button onClick={logout} className="text-neutral-400 hover:text-white transition-colors" title="Выйти">
+                        <Link to="/profile" className="w-9 h-9 bg-neutral-700 rounded-full flex items-center justify-center text-sm font-bold hover:bg-neutral-600 transition-colors" title="Профиль">
+                           {user?.avatar_url ? (
+                               <img src={`http://localhost:8000/${user.avatar_url}`} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                           ) : (
+                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                           )}
+                        </Link>
+                        <button onClick={logout} className="text-neutral-400 hover:text-white transition-colors" title="Выйти">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                         </button>
+                        </button>
                     </div>
                 </div>
             </header>
             <main className="flex-grow p-4 md:p-6 lg:p-8 overflow-x-auto">
                 <DragDropContext onDragEnd={onDragEnd}>
-                    {/* ИЗМЕНЕНО: Колонки теперь занимают всю ширину */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
                         {Object.values(columns).map(column => {
                             const columnTasks = tasks.filter(task => task.status === column.id);
                             return (
-                                <Droppable key={column.id} droppableId={column.id}>
-                                    {(provided) => (
-                                        <KanbanColumn 
-                                            column={column} 
-                                            tasks={columnTasks} 
-                                            provided={provided}
-                                            onTaskClick={(task) => setEditingTask(task)}
-                                        />
-                                    )}
-                                </Droppable>
+                                <KanbanColumn
+                                    key={column.id}
+                                    column={column}
+                                    tasks={columnTasks}
+                                    onTaskClick={(task) => setEditingTask(task)}
+                                />
                             );
                         })}
                     </div>
@@ -127,8 +123,7 @@ const KanbanBoardPage = () => {
                 onClose={() => setIsAddModalOpen(false)}
                 onTaskAdded={handleTaskAdded}
             />
-            {}
-            <EditTaskModal 
+            <EditTaskModal
                 isOpen={!!editingTask}
                 onClose={() => setEditingTask(null)}
                 onTaskUpdated={handleTaskUpdated}
