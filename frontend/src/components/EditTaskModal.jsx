@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import Spinner from './Spinner';
 
-const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
+const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
     // Состояния для полей формы
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -29,6 +29,17 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
             fetchUsers();
         }
     }, [isOpen, users.length]);
+
+    useEffect(() => {
+        if (isOpen && task) {
+            setTitle(task.title);
+            setDescription(task.description || '');
+            setType(task.type);
+            setAssigneeIds(task.assignees ? task.assignees.map(user => user.id) : []);
+        } else if (!isOpen) {
+            // resetForm(); // Already handled by handleClose
+        }
+    }, [task, isOpen]);
 
     // Обработчик для выбора/снятия выбора исполнителя
     const handleAssigneeChange = (userId) => {
@@ -58,6 +69,13 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
         e.preventDefault();
         setLoading(true);
         setError('');
+
+        if (!task || !task.id) {
+            setError("Task data is missing.");
+            setLoading(false);
+            return;
+        }
+
         try {
             const taskData = {
                 title,
@@ -65,12 +83,12 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
                 type,
                 assignee_ids: assigneeIds,
             };
-            const response = await api.post('/tasks/', taskData);
-            onTaskAdded(response.data); // Передаем новую задачу на главную страницу
+            const response = await api.put(`/tasks/${task.id}/`, taskData);
+            onTaskUpdated(response.data); 
             handleClose();
         } catch (err) {
-            console.error("Failed to create task", err);
-            setError("Не удалось создать задачу. Проверьте введенные данные.");
+            console.error("Failed to update task", err);
+            setError("Не удалось обновить задачу. Проверьте введенные данные.");
         } finally {
             setLoading(false);
         }
@@ -81,7 +99,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
             <div className="bg-neutral-800 rounded-lg shadow-xl p-6 md:p-8 w-full max-w-lg border border-neutral-700">
-                <h2 className="text-2xl font-bold mb-6 text-neutral-100">Создать новую задачу</h2>
+                <h2 className="text-2xl font-bold mb-6 text-neutral-100">Редактировать задачу</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-neutral-400 mb-2 text-sm">Название</label>
@@ -140,7 +158,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
                             Отмена
                         </button>
                         <button type="submit" disabled={loading} className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors disabled:bg-neutral-700 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]">
-                            {loading ? <Spinner /> : 'Создать'}
+                            {loading ? <Spinner /> : 'Сохранить'}
                         </button>
                     </div>
                 </form>
@@ -149,4 +167,4 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
     );
 };
 
-export default AddTaskModal;
+export default EditTaskModal;
