@@ -36,6 +36,7 @@ const ProfilePage = () => {
             const response = await api.post('/users/me/avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
+            console.log('Avatar upload response data:', response.data); // Log the response
             updateUser(response.data); // Update user in AuthContext
             setFile(null); // Reset file input
             setPreview(null); // Reset preview
@@ -49,6 +50,16 @@ const ProfilePage = () => {
 
     if (!user) {
         return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+    }
+
+    // Determine avatarSrc
+    let avatarSrc = 'https://placehold.co/128x128/e2e8f0/4a5568?text=??'; // Default placeholder
+    if (preview) {
+        avatarSrc = preview;
+    } else if (user && typeof user.avatar_url === 'string' && user.avatar_url.trim() !== '') {
+        // Ensure user.avatar_url is a non-empty string before using it
+        const path = user.avatar_url; // Assign to a temporary variable
+        avatarSrc = `http://localhost:8000/${path}?t=${new Date().getTime()}`;
     }
 
     return (
@@ -71,9 +82,14 @@ const ProfilePage = () => {
                     <div className="flex flex-col items-center space-y-4">
                         <div className="relative">
                             <img 
-                                src={preview || (user.avatar_url ? `http://localhost:8000/${user.avatar_url}` : 'https://placehold.co/128x128/e2e8f0/4a5568?text=??')} 
+                                src={avatarSrc}
                                 alt="avatar" 
-                                className="w-32 h-32 rounded-full object-cover border-4 border-indigo-500 dark:border-indigo-500" 
+                                className="w-32 h-32 rounded-full object-cover border-4 border-indigo-500 dark:border-indigo-500"
+                                onError={(e) => {
+                                    console.error('Avatar image failed to load:', e.target.src);
+                                    // Optionally, set a specific error state here to show a message in the UI
+                                    // setError('Avatar image could not be loaded. Please try uploading again or contact support.');
+                                }}
                             />
                         </div>
                          <h2 className="text-2xl font-bold text-neutral-800 dark:text-white">{user.first_name} {user.last_name}</h2>
