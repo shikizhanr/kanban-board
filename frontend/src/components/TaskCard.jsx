@@ -35,10 +35,10 @@ const TaskCard = ({ task, provided, onClick, onDelete }) => { // Added onDelete 
             {onDelete && ( // Render button only if onDelete is provided
                 <button
                     onClick={handleDeleteClick}
-                    className="absolute top-2 right-2 text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-600 px-2 py-1 bg-red-100 dark:bg-red-700/30 rounded hover:bg-red-200 dark:hover:bg-red-600/50 transition-colors"
+                    className="absolute top-2 right-2 text-xs text-white bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors"
                     aria-label="Delete task"
                 >
-                    Delete
+                    Удалить
                 </button>
             )}
 

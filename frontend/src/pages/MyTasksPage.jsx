@@ -51,11 +51,12 @@ const MyTasksPage = () => {
     const openEditModal = (task) => {
         setEditingTask(task);
         setIsEditModalOpen(true);
+        setError(''); // Clear page errors when opening modal
     };
-
     const closeEditModal = () => {
         setEditingTask(null);
         setIsEditModalOpen(false);
+        setError(''); // Clear page errors when closing modal by cancel/X
     };
 
     // Modified handleDeleteTask to open confirmation modal
@@ -82,6 +83,28 @@ const MyTasksPage = () => {
             setTaskToDeleteTitle('');
         }
     };
+
+    // New function for handling delete from EditTaskModal (which has its own internal confirmation)
+    const handleApiDeleteFromEditModal = async (taskId) => {
+        setError(''); // Clear previous page-level errors
+        try {
+            await deleteTask(taskId);
+            setMyTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+            // Close EditTaskModal by resetting its controlling states
+            setEditingTask(null);
+            setIsEditModalOpen(false);
+            // Optionally, display a success notification
+        } catch (err) {
+            console.error('Failed to delete task from EditTaskModal on MyTasksPage:', err);
+            // Set page-level error. EditTaskModal might also show its own error if the API call was made from it.
+            // However, EditTaskModal's onDelete is a callback *after* its internal confirmation.
+            // So, this error is from the API call made here in MyTasksPage.
+            setError(err.response?.data?.detail || 'Не удалось удалить задачу. Попробуйте еще раз.');
+            // Modal should ideally remain open or its error state be set.
+            // Since we are setting page-level error, and not closing modal on error here, it will stay open.
+        }
+    };
+
 
     if (loading) {
         return (
@@ -141,7 +164,7 @@ const MyTasksPage = () => {
                 onClose={closeEditModal}
                 onTaskUpdated={handleTaskUpdated}
                 task={editingTask}
-                // onDelete for EditTaskModal is not wired here as this page focuses on TaskCard deletion.
+                onDelete={handleApiDeleteFromEditModal} // Pass the new handler here
             />
             {showDeleteConfirm && (
                 <ConfirmationModal
