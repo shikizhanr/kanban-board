@@ -1,4 +1,5 @@
 import pytest
+import os # Added import
 from typing import AsyncGenerator
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -10,14 +11,16 @@ from dotenv import load_dotenv
 load_dotenv()
 # --- КОНЕЦ ВАЖНОЙ ЧАСТИ ---
 
+# Используем SQLite в памяти для тестов
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+os.environ["DATABASE_URL"] = TEST_DATABASE_URL # Set DATABASE_URL for the app code
+
 # Теперь, когда переменные загружены, импорт пройдет успешно
 from app.main import app
 from app.db.session import Base, get_db
 
-# Используем SQLite в памяти для тестов
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=True)
+engine = create_async_engine(TEST_DATABASE_URL, echo=True) # This engine is for test session management
 TestingSessionLocal = sessionmaker(
     autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
 )

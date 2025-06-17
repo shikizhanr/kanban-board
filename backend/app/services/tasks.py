@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -74,12 +75,15 @@ async def create_task(db: AsyncSession, task: TaskCreate, creator_id: int):
     await db.refresh(db_task)
     return await get_task(db, db_task.id)
 
-async def update_task(db: AsyncSession, task_id: int, task_data: TaskUpdate):
+async def update_task(db: AsyncSession, task_id: int, task_data: TaskUpdate, current_user: User):
     db_task = await get_task(db, task_id)
     if not db_task:
         return None
-        
+
     update_data = task_data.model_dump(exclude_unset=True)
+
+    if "status" in update_data and current_user.id not in [assignee.id for assignee in db_task.assignees]:
+        raise HTTPException(status_code=403, detail="Вы не назначены на выполнение этой задачи")
 
     if "assignee_ids" in update_data:
         assignee_ids = update_data.pop("assignee_ids")

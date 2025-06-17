@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast'; // Import toast
 import api from '../api';
 import useAuth from '../hooks/useAuth';
 import KanbanColumn from '../components/KanbanColumn';
@@ -72,9 +73,13 @@ const KanbanBoardPage = () => {
         try {
             await api.put(`/tasks/${taskId}`, { status: newStatus });
         } catch (err) {
-            setError('Не удалось обновить статус задачи.');
-            console.error(err);
-            setTasks(currentTasks);
+            console.error("Failed to update task status:", err); // Keep console.error
+            if (err.response && err.response.status === 403 && err.response.data && err.response.data.detail) {
+                toast.error(err.response.data.detail); // Use toast for specific 403 message
+            } else {
+                toast.error('Не удалось обновить статус задачи.'); // Use toast for generic error
+            }
+            setTasks(currentTasks); // Revert optimistic update in all error cases
         }
     };
 

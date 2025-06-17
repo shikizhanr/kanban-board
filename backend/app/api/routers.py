@@ -123,7 +123,7 @@ async def update_task_endpoint(
                     detail=f"User with id {user_id} not found to be an assignee."
                 )
     
-    updated_task = await tasks_service.update_task(db, task_id=task_id, task_data=task)
+    updated_task = await tasks_service.update_task(db, task_id=task_id, task_data=task, current_user=current_user)
     if updated_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return updated_task
