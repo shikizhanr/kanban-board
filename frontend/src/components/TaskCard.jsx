@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 const AssigneeAvatar = ({ user }) => (
     <div
@@ -6,12 +6,13 @@ const AssigneeAvatar = ({ user }) => (
         title={`${user.first_name} ${user.last_name}`}
     >
         {user.avatar_url ? (
-            <img src={`http://localhost:8000/${user.avatar_url}`} alt="avatar" className="w-full h-full rounded-full object-cover" />
+            <img src={`http://localhost:8000/api/${user.avatar_url}?v=${user.avatar_last_updated || '0'}`} alt="avatar" className="w-full h-full rounded-full object-cover" />
         ) : (
             `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
         )}
     </div>
 );
+const MemoizedAssigneeAvatar = memo(AssigneeAvatar);
 
 
 const TaskCard = ({ task, provided, onClick }) => (
@@ -41,7 +42,7 @@ const TaskCard = ({ task, provided, onClick }) => (
             <div></div> {/* Empty div to push assignees to the right if needed, or adjust main flex container */}
             <div className="flex -space-x-3">
                  {task.assignees.length > 0 ? (
-                     task.assignees.slice(0, 3).map(user => <AssigneeAvatar key={user.id} user={user} />)
+                     task.assignees.slice(0, 3).map(user => <MemoizedAssigneeAvatar key={user.id} user={user} />)
                  ) : (
                       <div className="w-8 h-8 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-full flex items-center justify-center text-xs font-bold text-neutral-400 dark:text-neutral-500" title="No assignees">?</div>
                  )}
@@ -55,4 +56,4 @@ const TaskCard = ({ task, provided, onClick }) => (
     </div>
 );
 
-export default TaskCard;
+export default memo(TaskCard);

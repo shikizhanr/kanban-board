@@ -37,7 +37,9 @@ const ProfilePage = () => {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             console.log('Avatar upload response data:', response.data); // Log the response
-            updateUser(response.data); // Update user in AuthContext
+            const newUserData = response.data;
+            newUserData.avatar_last_updated = new Date().getTime();
+            updateUser(newUserData); // Update user in AuthContext
             setFile(null); // Reset file input
             setPreview(null); // Reset preview
         } catch (err) {
@@ -59,7 +61,8 @@ const ProfilePage = () => {
     } else if (user && typeof user.avatar_url === 'string' && user.avatar_url.trim() !== '') {
         // Ensure user.avatar_url is a non-empty string before using it
         const path = user.avatar_url; // Assign to a temporary variable
-        avatarSrc = `http://localhost:8000/${path}?t=${new Date().getTime()}`;
+        // Assuming path is like "uploads/user_id_filename.png"
+        avatarSrc = `http://localhost:8000/api/${path}?v=${user.avatar_last_updated || '0'}`; 
     }
 
     return (

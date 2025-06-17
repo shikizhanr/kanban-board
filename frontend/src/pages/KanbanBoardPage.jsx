@@ -50,6 +50,10 @@ const KanbanBoardPage = () => {
         ));
     };
 
+    const handleTaskDeleted = (deletedTaskId) => {
+        setTasks(prevTasks => prevTasks.filter(task => task.id !== deletedTaskId));
+    };
+
     const onDragEnd = async (result) => {
         const { source, destination, draggableId } = result;
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
@@ -74,6 +78,11 @@ const KanbanBoardPage = () => {
         }
     };
 
+    
+    const handleTaskClick = useCallback((task) => {
+        setEditingTask(task);
+    }, []);
+
     if (loading) return <div className="flex justify-center items-center h-screen bg-white dark:bg-neutral-900"><Spinner /></div>;
     if (error) return <div className="text-center text-red-500 dark:text-red-400 mt-10">{error}</div>;
 
@@ -95,7 +104,7 @@ const KanbanBoardPage = () => {
                     <div className="flex items-center space-x-4">
                         <Link to="/profile" className="w-9 h-9 bg-neutral-200 dark:bg-neutral-700 rounded-full flex items-center justify-center text-sm font-bold hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors" title="Профиль">
                            {user?.avatar_url ? (
-                               <img src={`http://localhost:8000/${user.avatar_url}`} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                               <img src={`http://localhost:8000/api/${user.avatar_url}?v=${user.avatar_last_updated || '0'}`} alt="avatar" className="w-full h-full rounded-full object-cover" />
                            ) : (
                                <svg className="text-neutral-600 dark:text-neutral-400" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                            )}
@@ -132,6 +141,7 @@ const KanbanBoardPage = () => {
                 isOpen={!!editingTask}
                 onClose={() => setEditingTask(null)}
                 onTaskUpdated={handleTaskUpdated}
+                onTaskDeleted={handleTaskDeleted} // Pass the delete handler
                 task={editingTask}
             />
         </div>

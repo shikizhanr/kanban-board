@@ -77,7 +77,7 @@ async def read_my_tasks_endpoint(
     """
     return await tasks_service.get_tasks_by_assignee(db, user_id=current_user.id)
 
-router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+# router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 
 @router.post("/tasks/", response_model=TaskOut, status_code=status.HTTP_201_CREATED)

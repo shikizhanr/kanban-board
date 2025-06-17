@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles # Import StaticFiles
+import os
 from contextlib import asynccontextmanager
 
 from app.api.routers import router as api_router
@@ -34,6 +36,15 @@ app.add_middleware(
     allow_methods=["*"], # Разрешаем все методы (GET, POST, PUT, DELETE и т.д.)
     allow_headers=["*"], # Разрешаем все заголовки
 )
+
+# Define the uploads directory for main.py context
+UPLOADS_DIR_MAIN = "uploads" 
+# Ensure the directory exists (though routers.py also does this, belt and suspenders)
+os.makedirs(UPLOADS_DIR_MAIN, exist_ok=True) 
+
+# Mount static files for uploads - this path should now be /api/uploads
+app.mount("/api/uploads", StaticFiles(directory=UPLOADS_DIR_MAIN), name="api_uploads")
+
 
 
 app.include_router(api_router, prefix="/api")
