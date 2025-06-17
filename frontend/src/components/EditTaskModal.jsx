@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import Spinner from './Spinner';
+import ConfirmationModal from './ConfirmationModal'; // Import ConfirmationModal
 
-const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => { // Added onDelete
+const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => {
     // Состояния для полей формы
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -14,6 +15,8 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => { 
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false); // New state
 
     useEffect(() => {
         // Загружаем пользователей один раз, когда модальное окно открывается
@@ -38,8 +41,8 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => { 
             setType(task.type);
             setPriority(task.priority || 'medium'); // Set priority from task
             setAssigneeIds(task.assignees ? task.assignees.map(user => user.id) : []);
-        } else if (!isOpen) {
-            // resetForm(); // Already handled by handleClose
+            setError('');
+            setShowDeleteConfirmModal(false); // Reset confirm modal on task change/reopen
         }
     }, [task, isOpen]);
 
@@ -98,23 +101,30 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => { 
         }
     };
 
-    // New handleDelete function
-    const handleDelete = () => {
-        if (window.confirm('Вы уверены, что хотите удалить эту задачу?')) {
-            if (onDelete && task && task.id) {
-                onDelete(task.id); // Call the callback passed from parent
-                // Modal closure is handled by the parent after successful deletion.
-            }
-        }
+    // Modified: This function now opens the confirmation modal
+    const handleDeleteClick = () => {
+        setShowDeleteConfirmModal(true);
     };
+
+    // New: This function is called when custom confirmation is confirmed
+    const confirmDeleteHandler = () => {
+        if (onDelete && task && task.id) {
+            onDelete(task.id); // Call the callback passed from parent
+        }
+        setShowDeleteConfirmModal(false);
+        // Parent (e.g., KanbanBoardPage) will handle closing EditTaskModal via its logic (setEditingTask(null))
+    };
+
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-60 flex justify-center items-center z-50 p-4">
-            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl p-6 md:p-8 w-full max-w-lg border border-neutral-200 dark:border-neutral-700">
-                <h2 className="text-2xl font-bold mb-6 text-neutral-800 dark:text-neutral-100">Редактировать задачу</h2>
-                <form onSubmit={handleSubmit}>
+        <> {/* Use Fragment because ConfirmationModal is now a sibling */}
+            <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-60 flex justify-center items-center z-50 p-4">
+                {/* ... (rest of EditTaskModal JSX structure) ... */}
+                <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl p-6 md:p-8 w-full max-w-lg border border-neutral-200 dark:border-neutral-700">
+                    <h2 className="text-2xl font-bold mb-6 text-neutral-800 dark:text-neutral-100">Редактировать задачу</h2>
+                    <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-neutral-600 dark:text-neutral-400 mb-2 text-sm">Название</label>
                         <input
@@ -181,8 +191,8 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => { 
                             {onDelete && task && task.id && (
                                 <button
                                     type="button"
-                                    onClick={handleDelete}
-                                    disabled={loading} // Disable if save is in progress
+                                    onClick={handleDeleteClick} // Changed from handleDelete
+                                    disabled={loading}
                                     className="px-4 py-2 bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Удалить
@@ -201,6 +211,21 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => { 
                 </form>
             </div>
         </div>
+
+            {/* Render ConfirmationModal */}
+            {showDeleteConfirmModal && task && ( // Ensure task is available for the message
+                <ConfirmationModal
+                    isOpen={showDeleteConfirmModal}
+                    onClose={() => setShowDeleteConfirmModal(false)}
+                    onConfirm={confirmDeleteHandler}
+                    title="Подтверждение удаления"
+                    message={`Вы уверены, что хотите удалить задачу "${task.title}"? Это действие необратимо.`}
+                    confirmButtonText="Удалить"
+                    cancelButtonText="Отмена"
+                    confirmButtonColor="red"
+                />
+            )}
+        </>
     );
 };
 

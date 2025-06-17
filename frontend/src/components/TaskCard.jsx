@@ -19,7 +19,7 @@ const TaskCard = ({ task, provided, onClick, onDelete }) => { // Added onDelete 
     const handleDeleteClick = (event) => {
         event.stopPropagation(); // Prevent card's onClick from firing
         if (onDelete) {
-            onDelete(task.id);
+            onDelete(task.id, task.title); // MODIFIED: Pass task.id and task.title
         }
     };
 
