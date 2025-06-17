@@ -67,6 +67,16 @@ async def upload_avatar_endpoint(
     
     return await users_service.update_avatar(db, user=current_user, avatar_path=file_path)
 
+@router.get("/users/me/tasks", response_model=List[TaskOut])
+async def read_my_tasks_endpoint(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Возвращает задачи, созданные текущим пользователем или назначенные ему.
+    """
+    return await tasks_service.get_tasks_by_assignee(db, user_id=current_user.id)
+
 router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 

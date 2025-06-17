@@ -3,17 +3,17 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskCard from './TaskCard';
 
 const KanbanColumn = ({ column, tasks, onTaskClick }) => (
-    <div className="bg-neutral-800/50 rounded-lg flex flex-col h-full w-full">
-        <h3 className="font-semibold text-lg p-4 text-neutral-300 tracking-wide border-b border-neutral-700 flex-shrink-0">
+    <div className="bg-neutral-100 dark:bg-neutral-800/50 rounded-lg flex flex-col h-full w-full shadow">
+        <h3 className="font-semibold text-lg p-4 text-neutral-700 dark:text-neutral-300 tracking-wide border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
             {column.title}
-            <span className="text-sm text-neutral-500 ml-2">{tasks.length}</span>
+            <span className="text-sm text-neutral-500 dark:text-neutral-500 ml-2">{tasks.length}</span>
         </h3>
         <Droppable droppableId={column.id}>
             {(provided, snapshot) => (
                 <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`p-4 flex-grow transition-colors duration-200 ${snapshot.isDraggingOver ? 'bg-indigo-900/10' : ''}`}
+                    className={`p-4 flex-grow transition-colors duration-200 ${snapshot.isDraggingOver ? 'bg-indigo-100 dark:bg-indigo-900/10' : ''}`}
                 >
                     {tasks.map((task, index) => (
                         <Draggable key={task.id} draggableId={task.id.toString()} index={index}>

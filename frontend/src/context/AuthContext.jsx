@@ -57,7 +57,11 @@ export const AuthProvider = ({ children }) => {
         navigate('/login');
     };
 
-    const value = { user, login, register, logout, isLoggedIn: !!user };
+    const updateUser = (newUserData) => {
+        setUser(newUserData);
+    };
+
+    const value = { user, login, register, logout, updateUser, isLoggedIn: !!user };
 
     if (loading) {
         return <div className="flex justify-center items-center h-screen"><Spinner /></div>;

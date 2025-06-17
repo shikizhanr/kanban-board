@@ -2,7 +2,7 @@ import React from 'react';
 
 const AssigneeAvatar = ({ user }) => (
     <div
-        className="w-8 h-8 bg-neutral-700 rounded-full flex items-center justify-center text-xs font-bold text-white ring-2 ring-neutral-800 uppercase"
+        className="w-8 h-8 bg-neutral-300 dark:bg-neutral-700 rounded-full flex items-center justify-center text-xs font-bold text-neutral-700 dark:text-white ring-2 ring-white dark:ring-neutral-800 uppercase"
         title={`${user.first_name} ${user.last_name}`}
     >
         {user.avatar_url ? (
@@ -20,19 +20,33 @@ const TaskCard = ({ task, provided, onClick }) => (
         {...provided.draggableProps}
         {...provided.dragHandleProps}
         onClick={onClick}
-        className="bg-neutral-800 p-4 mb-4 rounded-lg shadow-lg border border-neutral-700 hover:border-indigo-500 transition-colors duration-200 cursor-pointer"
+        className="bg-white dark:bg-neutral-800 p-4 mb-4 rounded-lg shadow-md dark:shadow-lg border border-neutral-200 dark:border-neutral-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors duration-200 cursor-pointer"
     >
-        <h4 className="font-semibold text-neutral-200 mb-2">{task.title}</h4>
+        <h4 className="font-semibold text-neutral-700 dark:text-neutral-200 mb-2">{task.title}</h4>
+        <div className="flex justify-between items-center mb-2"> {/* Changed to items-center and added mb-2 */}
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${task.type === 'task' ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'}`}>{task.type}</span>
+            <span 
+                className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                    task.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-700/30 dark:text-red-300' :
+                    task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700/30 dark:text-yellow-300' :
+                    task.priority === 'low' ? 'bg-green-100 text-green-700 dark:bg-green-700/30 dark:text-green-300' :
+                    'bg-gray-100 text-gray-700 dark:bg-gray-700/30 dark:text-gray-300' // Default fallback
+                }`}
+            >
+                {task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'N/A'}
+            </span>
+        </div>
         <div className="flex justify-between items-end">
-            <span className="text-xs font-medium bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded-full">{task.type}</span>
+            {/* Assignee avatars will go here, but they are on a new line if the title is long, let's keep them at the bottom */}
+            <div></div> {/* Empty div to push assignees to the right if needed, or adjust main flex container */}
             <div className="flex -space-x-3">
                  {task.assignees.length > 0 ? (
                      task.assignees.slice(0, 3).map(user => <AssigneeAvatar key={user.id} user={user} />)
                  ) : (
-                      <div className="w-8 h-8 border-2 border-dashed border-neutral-600 rounded-full flex items-center justify-center text-xs font-bold text-neutral-500" title="No assignees">?</div>
+                      <div className="w-8 h-8 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-full flex items-center justify-center text-xs font-bold text-neutral-400 dark:text-neutral-500" title="No assignees">?</div>
                  )}
                  {task.assignees.length > 3 && (
-                    <div className="w-8 h-8 bg-neutral-600 rounded-full flex items-center justify-center text-xs font-bold text-white ring-2 ring-neutral-800">
+                    <div className="w-8 h-8 bg-neutral-300 dark:bg-neutral-600 rounded-full flex items-center justify-center text-xs font-bold text-neutral-700 dark:text-white ring-2 ring-white dark:ring-neutral-800">
                         +{task.assignees.length - 3}
                     </div>
                  )}

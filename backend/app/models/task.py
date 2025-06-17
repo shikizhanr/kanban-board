@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Float, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum as SQLAlchemyEnum, Float, Table, DateTime # Added DateTime
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 from app.models.user import User
 import enum
+from datetime import datetime # Added datetime import
 
 task_assignees_table = Table(
     "task_assignees",
@@ -27,9 +28,11 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(String)
-    status = Column(Enum(TaskStatus), default=TaskStatus.todo)
-    type = Column(Enum(TaskType), default=TaskType.development)
+    status = Column(SQLAlchemyEnum(TaskStatus), default=TaskStatus.todo) # Use SQLAlchemyEnum
+    type = Column(SQLAlchemyEnum(TaskType), default=TaskType.development) # Use SQLAlchemyEnum
+    priority = Column(String, default='medium', nullable=False, index=True) # Added priority field
     time_spent = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False) # Added created_at field
 
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     

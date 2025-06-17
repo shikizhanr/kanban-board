@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import KanbanBoardPage from './pages/KanbanBoardPage';
 import ProfilePage from './pages/ProfilePage';
+import MyTasksPage from './pages/MyTasksPage'; // Import MyTasksPage
 
 function App() {
     return (
@@ -26,6 +27,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <KanbanBoardPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/my-tasks" // Add route for MyTasksPage
+                    element={
+                        <ProtectedRoute>
+                            <MyTasksPage />
                         </ProtectedRoute>
                     }
                 />

@@ -12,10 +12,48 @@ async def get_task(db: AsyncSession, task_id: int):
     return result.scalars().first()
 
 
+from sqlalchemy import case # Import case
+
 async def get_tasks(db: AsyncSession, skip: int = 0, limit: int = 100):
-    """Получает список всех задач с пагинацией."""
+    """Получает список всех задач с пагинацией, отсортированных по приоритету и дате создания."""
+    
+    priority_order = case(
+        (Task.priority == 'high', 0),
+        (Task.priority == 'medium', 1),
+        (Task.priority == 'low', 2),
+        else_=3 
+    )
+
     result = await db.execute(
-        select(Task).options(selectinload(Task.creator), selectinload(Task.assignees)).offset(skip).limit(limit)
+        select(Task)
+        .options(selectinload(Task.creator), selectinload(Task.assignees))
+        .order_by(priority_order, Task.created_at.desc()) # Sort by priority, then by creation date
+        .offset(skip)
+        .limit(limit)
+    )
+    return result.scalars().all()
+
+async def get_tasks_by_assignee(db: AsyncSession, user_id: int, skip: int = 0, limit: int = 100):
+    """
+    Получает список задач, созданных пользователем или назначенных ему,
+    отсортированных по приоритету и дате создания.
+    """
+    priority_order = case(
+        (Task.priority == 'high', 0),
+        (Task.priority == 'medium', 1),
+        (Task.priority == 'low', 2),
+        else_=3 
+    )
+
+    result = await db.execute(
+        select(Task)
+        .options(selectinload(Task.creator), selectinload(Task.assignees))
+        .filter(
+            (Task.creator_id == user_id) | (Task.assignees.any(User.id == user_id))
+        )
+        .order_by(priority_order, Task.created_at.desc())
+        .offset(skip)
+        .limit(limit)
     )
     return result.scalars().all()
 
