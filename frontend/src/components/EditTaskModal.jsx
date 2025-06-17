@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import Spinner from './Spinner';
 
-const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
+const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task, onDelete }) => { // Added onDelete
     // Состояния для полей формы
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -51,7 +51,7 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
                 : [...prev, userId] // добавляем, если нет
         );
     };
-    
+
     // Сброс формы в исходное состояние
     const resetForm = () => {
         setTitle('');
@@ -88,13 +88,23 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
                 assignee_ids: assigneeIds,
             };
             const response = await api.put(`/tasks/${task.id}/`, taskData);
-            onTaskUpdated(response.data); 
+            onTaskUpdated(response.data);
             handleClose();
         } catch (err) {
             console.error("Failed to update task", err);
-            setError("Не удалось обновить задачу. Проверьте введенные данные.");
+            setError(err.response?.data?.detail || "Не удалось обновить задачу. Проверьте введенные данные.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // New handleDelete function
+    const handleDelete = () => {
+        if (window.confirm('Вы уверены, что хотите удалить эту задачу?')) {
+            if (onDelete && task && task.id) {
+                onDelete(task.id); // Call the callback passed from parent
+                // Modal closure is handled by the parent after successful deletion.
+            }
         }
     };
 
@@ -165,13 +175,28 @@ const EditTaskModal = ({ isOpen, onClose, onTaskUpdated, task }) => {
 
                     {error && <p className="text-red-500 dark:text-red-400 text-sm mb-4">{error}</p>}
 
-                    <div className="flex justify-end space-x-4">
-                        <button type="button" onClick={handleClose} className="px-4 py-2 bg-neutral-200 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-500 transition-colors">
-                            Отмена
-                        </button>
-                        <button type="submit" disabled={loading} className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-colors disabled:bg-indigo-400 dark:disabled:bg-neutral-700 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]">
-                            {loading ? <Spinner /> : 'Сохранить'}
-                        </button>
+                    {/* Modified Footer Buttons */}
+                    <div className="flex justify-between items-center w-full pt-4 border-t border-neutral-200 dark:border-neutral-700">
+                        <div> {/* Container for Delete button on the left */}
+                            {onDelete && task && task.id && (
+                                <button
+                                    type="button"
+                                    onClick={handleDelete}
+                                    disabled={loading} // Disable if save is in progress
+                                    className="px-4 py-2 bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Удалить
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex space-x-4"> {/* Container for Cancel and Save buttons on the right */}
+                            <button type="button" onClick={handleClose} className="px-4 py-2 bg-neutral-200 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-100 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-500 transition-colors">
+                                Отмена
+                            </button>
+                            <button type="submit" disabled={loading} className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-colors disabled:bg-indigo-400 dark:disabled:bg-neutral-700 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]">
+                                {loading ? <Spinner size="sm" /> : 'Сохранить'}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

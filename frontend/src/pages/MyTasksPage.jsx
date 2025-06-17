@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api';
+import api, { deleteTask } from '../api'; // Ensure deleteTask is imported
 import useAuth from '../hooks/useAuth';
 import TaskCard from '../components/TaskCard';
 import Spinner from '../components/Spinner';
@@ -52,6 +52,20 @@ const MyTasksPage = () => {
         setIsEditModalOpen(false);
     };
 
+    const handleDeleteTask = async (taskId) => {
+        if (window.confirm('Вы уверены, что хотите удалить эту задачу?')) {
+            setError(''); // Clear previous errors
+            try {
+                await deleteTask(taskId);
+                setMyTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+                // Optionally, add a success notification here
+            } catch (err) {
+                setError('Не удалось удалить задачу. Попробуйте еще раз.');
+                console.error('Failed to delete task', err);
+            }
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col h-screen bg-white dark:bg-neutral-900 text-neutral-800 dark:text-white">
@@ -95,11 +109,12 @@ const MyTasksPage = () => {
                         // Note: TaskCard expects 'provided' prop for react-beautiful-dnd, which is not used here.
                         // We'll pass minimal dnd props or modify TaskCard if it causes issues.
                         // For now, passing undefined or minimal mock.
-                        <TaskCard 
-                            key={task.id} 
-                            task={task} 
-                            onClick={() => openEditModal(task)} // Open modal on click
+                        <TaskCard
+                            key={task.id}
+                            task={task}
+                            onClick={() => openEditModal(task)}
                             provided={{ innerRef: React.createRef(), draggableProps: {}, dragHandleProps: {} }} // Mock dnd props
+                            onDelete={handleDeleteTask} // Pass the delete handler
                         />
                     ))}
                 </div>

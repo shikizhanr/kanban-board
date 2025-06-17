@@ -15,18 +15,37 @@ const AssigneeAvatar = ({ user }) => (
 const MemoizedAssigneeAvatar = memo(AssigneeAvatar);
 
 
-const TaskCard = ({ task, provided, onClick }) => (
-    <div
-        ref={provided.innerRef}
-        {...provided.draggableProps}
-        {...provided.dragHandleProps}
-        onClick={onClick}
-        className="bg-white dark:bg-neutral-800 p-4 mb-4 rounded-lg shadow-md dark:shadow-lg border border-neutral-200 dark:border-neutral-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors duration-200 cursor-pointer"
-    >
-        <h4 className="font-semibold text-neutral-700 dark:text-neutral-200 mb-2">{task.title}</h4>
-        <div className="flex justify-between items-center mb-2"> {/* Changed to items-center and added mb-2 */}
-            <span className={`text-xs font-medium px-2 py-1 rounded-full ${task.type === 'task' ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'}`}>{task.type}</span>
-            <span 
+const TaskCard = ({ task, provided, onClick, onDelete }) => { // Added onDelete prop
+    const handleDeleteClick = (event) => {
+        event.stopPropagation(); // Prevent card's onClick from firing
+        if (onDelete) {
+            onDelete(task.id);
+        }
+    };
+
+    return (
+        <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            onClick={onClick}
+            className="relative bg-white dark:bg-neutral-800 p-4 mb-4 rounded-lg shadow-md dark:shadow-lg border border-neutral-200 dark:border-neutral-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors duration-200 cursor-pointer"
+        >
+            {/* Delete Button */}
+            {onDelete && ( // Render button only if onDelete is provided
+                <button
+                    onClick={handleDeleteClick}
+                    className="absolute top-2 right-2 text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-600 px-2 py-1 bg-red-100 dark:bg-red-700/30 rounded hover:bg-red-200 dark:hover:bg-red-600/50 transition-colors"
+                    aria-label="Delete task"
+                >
+                    Delete
+                </button>
+            )}
+
+            <h4 className="font-semibold text-neutral-700 dark:text-neutral-200 mb-2 pr-10">{task.title}</h4> {/* Added pr-10 to avoid overlap with delete button */}
+            <div className="flex justify-between items-center mb-2">
+                <span className={`text-xs font-medium px-2 py-1 rounded-full ${task.type === 'task' ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'}`}>{task.type}</span>
+                <span
                 className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
                     task.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-700/30 dark:text-red-300' :
                     task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700/30 dark:text-yellow-300' :
@@ -55,5 +74,6 @@ const TaskCard = ({ task, provided, onClick }) => (
         </div>
     </div>
 );
+}
 
 export default memo(TaskCard);
