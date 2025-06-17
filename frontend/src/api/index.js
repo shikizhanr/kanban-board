@@ -17,4 +17,9 @@ api.interceptors.request.use(config => {
     return Promise.reject(error);
 });
 
+// Реализовал удаление задачи
+export const deleteTask = (taskId) => {
+    return api.delete(`/tasks/${taskId}`);
+};
+
 export default api;

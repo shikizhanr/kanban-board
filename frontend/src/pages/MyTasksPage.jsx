@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api';
+import api, { deleteTask } from '../api'; // Ensure deleteTask is imported
 import useAuth from '../hooks/useAuth';
 import TaskCard from '../components/TaskCard';
 import Spinner from '../components/Spinner';
 import ThemeToggleButton from '../components/ThemeToggleButton';
 import EditTaskModal from '../components/EditTaskModal'; // Import EditTaskModal
+import ConfirmationModal from '../components/ConfirmationModal'; // Import ConfirmationModal
 
 const MyTasksPage = () => {
     const [myTasks, setMyTasks] = useState([]);
@@ -14,6 +15,11 @@ const MyTasksPage = () => {
     const { user, logout } = useAuth();
     const [editingTask, setEditingTask] = useState(null); // State for task being edited
     const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for modal visibility
+
+    // New states for delete confirmation
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [taskToDeleteId, setTaskToDeleteId] = useState(null);
+    const [taskToDeleteTitle, setTaskToDeleteTitle] = useState('');
 
 
     const fetchMyTasks = useCallback(async () => {
@@ -50,6 +56,31 @@ const MyTasksPage = () => {
     const closeEditModal = () => {
         setEditingTask(null);
         setIsEditModalOpen(false);
+    };
+
+    // Modified handleDeleteTask to open confirmation modal
+    const handleDeleteTask = (taskId, taskTitle) => {
+        setTaskToDeleteId(taskId);
+        setTaskToDeleteTitle(taskTitle);
+        setShowDeleteConfirm(true);
+        setError(''); // Clear previous errors
+    };
+
+    // New function to execute deletion after confirmation
+    const executeDeleteTask = async () => {
+        if (!taskToDeleteId) return;
+        setError('');
+        try {
+            await deleteTask(taskToDeleteId);
+            setMyTasks(prevTasks => prevTasks.filter(task => task.id !== taskToDeleteId));
+        } catch (err) {
+            setError('Не удалось удалить задачу. Попробуйте еще раз.');
+            console.error('Failed to delete task on MyTasksPage', err);
+        } finally {
+            setShowDeleteConfirm(false);
+            setTaskToDeleteId(null);
+            setTaskToDeleteTitle('');
+        }
     };
 
     if (loading) {
@@ -95,11 +126,12 @@ const MyTasksPage = () => {
                         // Note: TaskCard expects 'provided' prop for react-beautiful-dnd, which is not used here.
                         // We'll pass minimal dnd props or modify TaskCard if it causes issues.
                         // For now, passing undefined or minimal mock.
-                        <TaskCard 
-                            key={task.id} 
-                            task={task} 
-                            onClick={() => openEditModal(task)} // Open modal on click
-                            provided={{ innerRef: React.createRef(), draggableProps: {}, dragHandleProps: {} }} // Mock dnd props
+                        <TaskCard
+                            key={task.id}
+                            task={task}
+                            onClick={() => openEditModal(task)}
+                            provided={{ innerRef: React.createRef(), draggableProps: {}, dragHandleProps: {} }}
+                            onDelete={() => handleDeleteTask(task.id, task.title)} // Updated to pass title
                         />
                     ))}
                 </div>
@@ -109,7 +141,24 @@ const MyTasksPage = () => {
                 onClose={closeEditModal}
                 onTaskUpdated={handleTaskUpdated}
                 task={editingTask}
+                // onDelete for EditTaskModal is not wired here as this page focuses on TaskCard deletion.
             />
+            {showDeleteConfirm && (
+                <ConfirmationModal
+                    isOpen={showDeleteConfirm}
+                    onClose={() => {
+                        setShowDeleteConfirm(false);
+                        setTaskToDeleteId(null);
+                        setTaskToDeleteTitle('');
+                    }}
+                    onConfirm={executeDeleteTask}
+                    title="Подтверждение удаления"
+                    message={`Вы уверены, что хотите удалить задачу "${taskToDeleteTitle}"? Это действие необратимо.`}
+                    confirmButtonText="Удалить"
+                    cancelButtonText="Отмена"
+                    confirmButtonColor="red"
+                />
+            )}
         </div>
     );
 };

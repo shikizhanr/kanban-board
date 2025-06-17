@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast'; // Import toast
-import api from '../api';
+import api, { deleteTask } from '../api'; // Import deleteTask
 import useAuth from '../hooks/useAuth';
 import KanbanColumn from '../components/KanbanColumn';
 import Spinner from '../components/Spinner';
@@ -55,6 +55,23 @@ const KanbanBoardPage = () => {
         setTasks(prevTasks => prevTasks.filter(task => task.id !== deletedTaskId));
     };
 
+    // New function to handle the deletion process including API call and modal closing
+    const handleInitiateDelete = async (taskId) => {
+        setError(''); // Clear previous errors
+        try {
+            await deleteTask(taskId);    // Call API to delete
+            handleTaskDeleted(taskId); // Update local state
+            setEditingTask(null);    // Close the modal on success
+            // Optionally: add a success toast/notification here
+        } catch (err) {
+            console.error('Failed to delete task from Kanban board:', err);
+            // Set error message to be displayed on the page
+            setError(err.response?.data?.detail || 'Не удалось удалить задачу. Попробуйте еще раз.');
+            // Modal remains open in case of error, as setEditingTask(null) is not called.
+        }
+    };
+
+
     const onDragEnd = async (result) => {
         const { source, destination, draggableId } = result;
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
@@ -83,18 +100,20 @@ const KanbanBoardPage = () => {
         }
     };
 
-    
+
     const handleTaskClick = useCallback((task) => {
         setEditingTask(task);
     }, []);
 
     if (loading) return <div className="flex justify-center items-center h-screen bg-white dark:bg-neutral-900"><Spinner /></div>;
-    if (error) return <div className="text-center text-red-500 dark:text-red-400 mt-10">{error}</div>;
+    // Error display is now handled below the header
+    // if (error) return <div className="text-center text-red-500 dark:text-red-400 mt-10">{error}</div>;
 
     return (
         <div className="flex flex-col h-screen bg-white dark:bg-neutral-900 text-neutral-800 dark:text-white font-sans">
             <header className="bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 p-4 flex justify-between items-center flex-shrink-0">
-                <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Kanban.PRO</h1>
+                {/* ... header content ... */}
+                 <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Kanban.PRO</h1>
                 <div className="flex items-center space-x-6">
                     <button
                         onClick={() => setIsAddModalOpen(true)}
@@ -120,8 +139,17 @@ const KanbanBoardPage = () => {
                     </div>
                 </div>
             </header>
+
+            {/* Display global errors here, below the header but above the board */}
+            {error && (
+                <div className="p-4 m-4 text-center text-red-600 bg-red-100 dark:text-red-300 dark:bg-red-700/30 rounded-md">
+                    {error} <button onClick={() => setError('')} className="ml-4 text-sm underline">Скрыть</button>
+                </div>
+            )}
+
             <main className="flex-grow p-4 md:p-6 lg:p-8 overflow-x-auto bg-neutral-50 dark:bg-neutral-800/30">
-                <DragDropContext onDragEnd={onDragEnd}>
+                {/* ... DragDropContext and columns mapping ... */}
+                 <DragDropContext onDragEnd={onDragEnd}>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
                         {Object.values(columns).map(column => {
                             const columnTasks = tasks.filter(task => task.status === column.id);
@@ -130,7 +158,7 @@ const KanbanBoardPage = () => {
                                     key={column.id}
                                     column={column}
                                     tasks={columnTasks}
-                                    onTaskClick={(task) => setEditingTask(task)}
+                                    onTaskClick={handleTaskClick} // Corrected: was (task) => setEditingTask(task)
                                 />
                             );
                         })}
@@ -144,9 +172,9 @@ const KanbanBoardPage = () => {
             />
             <EditTaskModal
                 isOpen={!!editingTask}
-                onClose={() => setEditingTask(null)}
+                onClose={() => { setEditingTask(null); setError(''); }} // Clear specific modal error too
                 onTaskUpdated={handleTaskUpdated}
-                onTaskDeleted={handleTaskDeleted} // Pass the delete handler
+                onDelete={handleInitiateDelete} // Changed from onTaskDeleted
                 task={editingTask}
             />
         </div>
