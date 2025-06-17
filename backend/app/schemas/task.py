@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List # Импортируем List
+from typing import Optional, List 
 from .user import UserOut
 from app.models.task import TaskStatus, TaskType
 
@@ -24,4 +24,5 @@ class TaskOut(TaskBase):
     time_spent: float
     creator: UserOut
     assignees: List[UserOut] = []
+
     model_config = ConfigDict(from_attributes=True)
