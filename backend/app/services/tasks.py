@@ -7,17 +7,18 @@ from app.schemas.task import TaskCreate, TaskUpdate
 from typing import List
 
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
-from app.models.task import Task
-from app.models.user import User
-from app.schemas.task import TaskCreate, TaskUpdate
-from typing import List
-
 async def get_task(db: AsyncSession, task_id: int):
     result = await db.execute(select(Task).options(selectinload(Task.creator), selectinload(Task.assignees)).filter(Task.id == task_id))
     return result.scalars().first()
+
+
+async def get_tasks(db: AsyncSession, skip: int = 0, limit: int = 100):
+    """Получает список всех задач с пагинацией."""
+    result = await db.execute(
+        select(Task).options(selectinload(Task.creator), selectinload(Task.assignees)).offset(skip).limit(limit)
+    )
+    return result.scalars().all()
+
 
 async def create_task(db: AsyncSession, task: TaskCreate, creator_id: int):
     assignee_ids = task.assignee_ids
