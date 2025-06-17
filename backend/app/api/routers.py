@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, UploadFile, File
+from fastapi.staticfiles import StaticFiles
 from datetime import timedelta
 from typing import List
 from fastapi.security import OAuth2PasswordRequestForm
@@ -20,30 +21,6 @@ router = APIRouter()
 
 UPLOADS_DIR = "uploads"
 os.makedirs(UPLOADS_DIR, exist_ok=True)
-
-
-@router.post("/users/me/avatar", response_model=UserOut)
-async def upload_avatar_endpoint(
-    file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    # Создаем безопасный путь к файлу
-    file_path = os.path.join(UPLOADS_DIR, f"{current_user.id}_{file.filename}")
-    
-    # Сохраняем файл на диск
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
-    # Обновляем путь в базе данных
-    # В ответе вернется относительный путь, например, 'uploads/1_my_avatar.png'
-    # Фронтенд должен будет добавить к нему базовый URL бэкенда.
-    return await users_service.update_avatar(db, user=current_user, avatar_path=file_path)
-
-# НОВЫЙ ЭНДПОИНТ, чтобы Nginx мог раздавать статичные файлы
-# (это не самый лучший способ, но простой для нашего проекта)
-from fastapi.staticfiles import StaticFiles
-router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 
 # --- Роутер аутентификации ---
@@ -78,6 +55,28 @@ async def read_users_endpoint(
 ):
     """Возвращает список всех пользователей."""
     return await users_service.get_users(db)
+
+@router.post("/users/me/avatar", response_model=UserOut)
+async def upload_avatar_endpoint(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Создаем безопасный путь к файлу
+    file_path = os.path.join(UPLOADS_DIR, f"{current_user.id}_{file.filename}")
+    
+    # Сохраняем файл на диск
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Обновляем путь в базе данных
+    # В ответе вернется относительный путь, например, 'uploads/1_my_avatar.png'
+    # Фронтенд должен будет добавить к нему базовый URL бэкенда.
+    return await users_service.update_avatar(db, user=current_user, avatar_path=file_path)
+
+# НОВЫЙ ЭНДПОИНТ, чтобы Nginx мог раздавать статичные файлы
+# (это не самый лучший способ, но простой для нашего проекта)
+router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 # --- Роутер задач (с аутентификацией) ---
 @router.post("/tasks/", response_model=TaskOut, status_code=status.HTTP_201_CREATED)

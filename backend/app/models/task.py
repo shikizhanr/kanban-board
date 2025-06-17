@@ -32,9 +32,9 @@ class Task(Base):
     time_spent = Column(Float, default=0.0)
 
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    # УДАЛЕНО: assignee_id больше не нужен
-    # assignee_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
     creator = relationship("User", foreign_keys=[creator_id], backref="created_tasks")
+    
     assignees = relationship(
         "User", secondary=task_assignees_table, backref="assigned_tasks"
     )
